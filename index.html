@@ -1,0 +1,4308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drizz Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --purple: #6d28d9;
+      --purple-light: #7c3aed;
+      --purple-soft: #f5f3ff;
+      --orange: #f59e0b;
+      --border: #e8eaef;
+      --border-strong: #d8dbe3;
+      --text: #15181f;
+      --text-muted: #5b6373;
+      --text-faint: #98a0af;
+      --bg: #ffffff;
+      --bg-soft: #f7f8fa;
+      --sidebar-bg: #ffffff;
+      --green: #15994f;
+      --red: #ef4444;
+      --code-purple: #7c3aed;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+      --shadow-md: 0 4px 14px rgba(16, 24, 40, 0.08);
+      --shadow-lg: 0 12px 30px rgba(16, 24, 40, 0.12);
+      --mono: "JetBrains Mono", "SF Mono", "Menlo", Consolas, monospace;
+      --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Inline SVG icons */
+    .ico {
+      width: 1.05em; height: 1.05em;
+      flex: none;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+      vertical-align: -0.18em;
+    }
+    .ico.fill { fill: currentColor; stroke: none; }
+    .nav-item .icon .ico { width: 19px; height: 19px; }
+    .file-card-icon .ico, .datafile-icon .ico { width: 21px; height: 21px; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.006em;
+    }
+
+    /* ---------- Sidebar ---------- */
+    .sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      transition: width 0.2s ease, padding 0.2s ease;
+      overflow: hidden;
+    }
+
+    .sidebar-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    .brand-mark {
+      width: 32px; height: 32px; flex: none;
+      border-radius: 9px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #fff;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      box-shadow: 0 2px 8px rgba(109, 40, 217, 0.35);
+    }
+    .brand-mark .ico { width: 18px; height: 18px; stroke-width: 1.9; }
+
+    .collapse-btn {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: background 0.15s;
+    }
+    .collapse-btn:hover { background: #f9fafb; }
+
+    /* Collapsed state */
+    .sidebar.collapsed {
+      width: 76px;
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+    .sidebar.collapsed .brand,
+    .sidebar.collapsed .nav-item span:not(.icon),
+    .sidebar.collapsed .nav-section-label {
+      display: none;
+    }
+    .sidebar.collapsed .sidebar-head {
+      justify-content: center;
+    }
+    .sidebar.collapsed .nav-item {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .nav { display: flex; flex-direction: column; gap: 10px; }
+
+    .nav-section-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+      padding: 8px 16px 2px;
+      white-space: nowrap;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: background 0.15s;
+    }
+
+    .nav-item:hover { background: var(--bg-soft); }
+
+    .nav-item .icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--text-faint);
+    }
+
+    .nav-item.active {
+      background: var(--purple-soft);
+      border-color: transparent;
+      color: var(--purple);
+      font-weight: 600;
+    }
+
+    .nav-item.active .icon { color: var(--purple); }
+
+    /* ---------- Version switch (bottom-left) ---------- */
+    .version-switch {
+      margin-top: auto;          /* pin to bottom of the sidebar */
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fcfcfd;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .vs-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+      white-space: nowrap;
+    }
+    .vs-toggle {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .vs-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .vs-opt:hover { background: #f3f4f6; }
+    .vs-opt.active {
+      background: #fff;
+      border-color: var(--purple);
+      color: var(--purple);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(109, 40, 217, 0.12);
+    }
+    .vs-badge {
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #eef2ff;
+      color: #4338ca;
+    }
+    .vs-opt.active .vs-badge { background: var(--purple); color: #fff; }
+    .vs-name { white-space: nowrap; }
+
+    /* Collapsed sidebar: compact the version switch to badges only */
+    .sidebar.collapsed .version-switch { padding: 8px; }
+    .sidebar.collapsed .vs-label,
+    .sidebar.collapsed .vs-name { display: none; }
+    .sidebar.collapsed .vs-opt { justify-content: center; padding: 8px; }
+
+    /* Version-specific visibility helpers (dev happens on v1) */
+    body.mode-v2 .v1-only { display: none !important; }
+    body:not(.mode-v2) .v2-only { display: none !important; }
+    /* V3 Dataset mode: datasets section only in v3; YAML section hidden in v3 */
+    body:not(.mode-v3) .v3-only { display: none !important; }
+    body.mode-v3 .notv3 { display: none !important; }
+
+    /* Dataset YAML editor modal */
+    .ds-head { align-items: center; gap: 14px; padding: 14px 18px; }
+    .ds-name-input {
+      flex: 1; min-width: 0; max-width: 360px; height: 40px;
+      display: flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border-strong); border-radius: 10px;
+      padding: 0 12px; background: #fff;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .ds-name-input:focus-within { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109,40,217,0.12); }
+    .ds-name-ico { display: inline-flex; color: var(--text-faint); }
+    .ds-name-ico .ico { width: 16px; height: 16px; }
+    .ds-name-input input {
+      flex: 1; min-width: 0; height: 100%; border: none; outline: none; background: transparent;
+      font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text);
+    }
+    .ds-name-input input::placeholder { color: var(--text-faint); font-weight: 500; }
+    .ds-name-ext { font-family: var(--mono); font-size: 13.5px; color: var(--text-faint); font-weight: 500; }
+    .ds-head-actions { display: flex; align-items: center; gap: 10px; }
+    .ds-head-actions .btn, .modal-foot .btn { height: 40px; font-size: 14px; }
+    .ds-modal-body {
+      flex: 1; display: flex; min-height: 0;
+      padding: 18px 18px 4px; background: var(--bg-soft);
+    }
+    #datasetModal .modal-foot { padding: 14px 18px; }
+    #datasetModal .modal-foot .td-hint { font-size: 12.5px; }
+    .ds-editor {
+      flex: 1; display: flex; min-height: 360px; overflow: hidden;
+      background: #fff;
+      border: 1px solid var(--border-strong); border-radius: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+    .ds-gutter {
+      flex: none; text-align: right; user-select: none;
+      padding: 16px 10px 16px 16px;
+      font-family: var(--mono); font-size: 13.5px; line-height: 1.75;
+      color: var(--text-faint); background: var(--bg-soft);
+      border-right: 1px solid var(--border);
+      white-space: pre; overflow: hidden;
+    }
+    .ds-gutter .gl-empty { color: #dc2626; font-weight: 700; }
+    .ds-code-area { position: relative; flex: 1; min-width: 0; }
+    .ds-highlight, .ds-text {
+      margin: 0; border: 0; box-sizing: border-box;
+      padding: 16px 18px; font-family: var(--mono); font-size: 13.5px;
+      line-height: 1.75; white-space: pre; tab-size: 2;
+    }
+    .ds-highlight {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+      color: var(--text);
+    }
+    .ds-highlight .dl { display: block; }
+    .ds-highlight .ds-empty-line { background: #fef2f2; color: #dc2626; }
+    .ds-highlight .ds-find-hit { background: #fde68a; color: var(--text); border-radius: 2px; }
+
+    /* In-editor find bar (Cmd/Ctrl+F) */
+    .ds-find {
+      display: none;
+      position: absolute; top: 10px; right: 14px; z-index: 5;
+      align-items: center; gap: 6px;
+      background: #fff; border: 1px solid var(--border-strong);
+      border-radius: 10px; padding: 5px 6px 5px 10px;
+      box-shadow: var(--shadow-md);
+    }
+    .ds-find.open { display: flex; }
+    .ds-find-ico { display: inline-flex; color: var(--text-faint); }
+    .ds-find-ico .ico { width: 15px; height: 15px; }
+    .ds-find input {
+      border: none; outline: none; background: transparent;
+      font-family: var(--sans); font-size: 13.5px; color: var(--text);
+      width: 150px;
+    }
+    .ds-find-count {
+      font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+      min-width: 36px; text-align: right; white-space: nowrap;
+    }
+    .ds-find-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border: none; background: transparent;
+      border-radius: 6px; cursor: pointer; color: var(--text-muted);
+    }
+    .ds-find-btn .ico { width: 15px; height: 15px; }
+    .ds-find-btn:hover { background: var(--bg-soft); color: var(--text); }
+    .ds-text {
+      position: relative; display: block; width: 100%; height: 100%;
+      resize: none; outline: none; overflow: auto;
+      background: transparent; color: transparent; caret-color: var(--text);
+    }
+    .ds-text::selection { background: rgba(124, 58, 237, 0.18); }
+    .ds-grid-wrap { flex: 1; overflow: auto; padding: 16px 20px; }
+    .ds-grid { border-collapse: collapse; }
+    .ds-grid th, .ds-grid td { border: 1px solid var(--border); padding: 0; }
+    .ds-grid th { background: #f3effe; }
+    .ds-grid input {
+      border: none; outline: none; background: transparent;
+      padding: 8px 10px; font-size: 14px; min-width: 120px; width: 100%;
+      font-family: var(--mono);
+    }
+    .ds-grid th input { font-weight: 700; color: var(--purple); }
+    .ds-grid .ds-corner, .ds-grid .ds-rownum {
+      background: #fafafa; color: var(--text-faint);
+      font-size: 12px; text-align: center; min-width: 34px; padding: 4px;
+    }
+    .ds-colhead { display: flex; align-items: center; }
+    .ds-del-btn {
+      border: none; background: transparent; cursor: pointer;
+      color: var(--text-faint); font-size: 12px; padding: 2px 6px;
+    }
+    .ds-del-btn:hover { color: #ef4444; }
+    .type-dataset { background: #ecfeff; color: #0e7490; }
+    .type-attr { background: #ecfeff; color: #0e7490; }
+
+    /* Resolve-missing-data modal */
+    .resolve-body { padding: 18px 20px; overflow: auto; }
+    .resolve-hint { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+    .resolve-field { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .resolve-field label {
+      width: 130px; flex-shrink: 0;
+      font-family: var(--mono); font-weight: 600; font-size: 14px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .resolve-field input {
+      flex: 1; border: 1px solid var(--border); border-radius: 9px;
+      padding: 9px 12px; font-size: 14px; outline: none; font-family: var(--mono);
+    }
+    .resolve-field input:focus { border-color: var(--purple); }
+    .resolve-import { margin-top: 14px; display: none; }
+    .resolve-import.open { display: block; }
+    .resolve-import-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-faint); margin: 6px 0;
+    }
+    .resolve-ds-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px;
+      margin-bottom: 6px; cursor: pointer; font-size: 13px;
+    }
+    .resolve-ds-row:hover { background: #f5f3ff; border-color: var(--purple-light); }
+    .resolve-ds-row.disabled { opacity: 0.5; cursor: default; }
+    .resolve-ds-row.disabled:hover { background: #fff; border-color: var(--border); }
+    .resolve-ds-name { font-family: var(--mono); font-weight: 600; }
+    .resolve-ds-sub { color: var(--text-faint); }
+    .resolve-empty { font-size: 13px; color: var(--text-faint); padding: 8px 0; }
+
+    /* Test Plans */
+    .plans-body { flex: 1; overflow: auto; padding: 26px 30px; }
+    .plan-cases { display: flex; flex-direction: column; }
+    .plan-case {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer;
+    }
+    .plan-case:last-child { border-bottom: none; }
+    .plan-case:hover { background: #f9fafb; }
+    .plan-case input { width: 17px; height: 17px; accent-color: var(--purple); cursor: pointer; }
+    .plan-case .pc-name { font-weight: 600; font-size: 14.5px; }
+    .plan-case .pc-sub { color: var(--text-faint); font-size: 12.5px; font-family: var(--mono); }
+    .plan-var-pill {
+      display: inline-block; font-family: var(--mono); font-size: 12px;
+      padding: 3px 9px; border-radius: 999px; background: #f3effe; color: var(--purple);
+      margin: 3px;
+    }
+    .plan-var-pill.set { background: #ecfdf5; color: #047857; }
+    .plan-dot { width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block; }
+
+    /* Clickable dataset table in the resolve window */
+    .resolve-ds-block { margin-bottom: 14px; }
+    .resolve-ds-title { font-family: var(--mono); font-weight: 600; font-size: 13px; margin: 8px 0 6px; }
+    .resolve-table { border-collapse: separate; border-spacing: 0; width: 100%;
+      border: 1px solid var(--border-strong); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-sm); }
+    .resolve-table th, .resolve-table td { border-bottom: 1px solid var(--border); padding: 0; }
+    .resolve-table tbody tr:last-child td { border-bottom: none; }
+    .resolve-table th {
+      background: var(--purple-soft); padding: 8px 12px; text-align: left;
+      font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--purple);
+    }
+    .rt-rownum {
+      background: var(--bg-soft); color: var(--text-faint);
+      text-align: center; padding: 6px 8px; width: 34px; font-size: 13px;
+    }
+    .rt-cell {
+      width: 100%; border: none; background: transparent;
+      padding: 8px 12px; cursor: pointer;
+      font-family: var(--mono); font-size: 13px; text-align: left; color: var(--text);
+    }
+    .rt-cell:hover { background: var(--purple-soft); }
+    .rt-cell.sel { background: var(--purple); color: #fff; font-weight: 600; }
+    .resolve-table .rt-cell-static { padding: 8px 12px; font-family: var(--mono); font-size: 13px; }
+    .resolve-table tbody tr { cursor: pointer; }
+    .resolve-table tbody tr:hover { background: var(--bg-soft); }
+    .resolve-table tbody tr.picked { background: var(--purple-soft); }
+    .resolve-table tbody tr.picked .rt-cell-static,
+    .resolve-table tbody tr.picked .rt-rownum { color: var(--purple); font-weight: 600; }
+
+    /* Conflict-aware resolve: master–detail layout */
+    .resolve-split { display: flex; gap: 18px; min-height: 320px; max-height: 60vh; }
+    .resolve-list {
+      width: 230px; flex: none; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 4px;
+      padding: 8px; background: var(--bg-soft);
+      border: 1px solid var(--border); border-radius: 12px;
+    }
+    .resolve-detail { flex: 1; min-width: 0; overflow-y: auto; padding: 2px; }
+    .rv-mark { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex: none; }
+    .rv-mark.ok { background: var(--green); }
+    .rv-mark.conflict { background: var(--orange); }
+    .rv-mark.manual { background: var(--orange); }
+    .rv-li { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid transparent;
+      border-radius: 9px; cursor: pointer; background: none; text-align: left; width: 100%; }
+    .rv-li:hover { background: #fff; }
+    .rv-li.sel { background: var(--purple-soft); border-color: #c4b5fd; }
+    .rv-li .rv-name { font-family: var(--mono); font-weight: 600; font-size: 13.5px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rv-d-title { font-family: var(--mono); font-weight: 700; font-size: 18px; color: var(--text); margin-bottom: 4px; }
+    .rv-d-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+    .rv-name { font-family: var(--mono); font-weight: 600; font-size: 13px; }
+    .rv-opts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .rv-opt { font-family: var(--mono); font-size: 13px; padding: 8px 12px; border: 1px solid var(--border-strong);
+      border-radius: 9px; background: #fff; cursor: pointer; box-shadow: var(--shadow-sm);
+      transition: background 0.15s, border-color 0.15s; }
+    .rv-opt:hover { background: var(--purple-soft); border-color: var(--purple-light); }
+    .rv-opt.sel { background: var(--purple); color: #fff; border-color: var(--purple); }
+    .rv-opt .rv-opt-src { opacity: 0.7; font-size: 11px; margin-left: 7px; }
+    .rv-opt.sel .rv-opt-src { opacity: 0.85; }
+    .rv-manual { display: flex; gap: 8px; }
+    .rv-manual input { flex: 1; height: 40px; padding: 0 12px; border: 1px solid var(--border-strong);
+      border-radius: 10px; font-family: var(--mono); font-size: 13.5px; box-shadow: var(--shadow-sm); }
+    .rv-manual input:focus { border-color: var(--purple); outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,0.12); }
+    .rv-edit { height: 40px; font-size: 14px; }
+    .resolve-foot-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
+    .resolve-foot-status::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); flex: none; }
+    .resolve-foot-status.ready { color: var(--green); }
+    .resolve-foot-status.ready::before { background: var(--green); }
+    #resolveRunBtn:disabled { opacity: 0.45; pointer-events: none; }
+
+    /* V2 placeholder */
+    .v2-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 14px;
+      color: var(--text-faint);
+      padding: 40px;
+    }
+    .v2-placeholder .big { font-size: 52px; }
+    .v2-placeholder h2 { font-size: 22px; color: var(--text); font-weight: 700; }
+    .v2-placeholder p { font-size: 15px; max-width: 380px; line-height: 1.6; }
+    .v2-placeholder .pill {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: #fff7ed;
+      color: #b45309;
+      border: 1px solid #fed7aa;
+    }
+
+    /* ---------- Test Data view ---------- */
+    .testdata-body {
+      flex: 1;
+      overflow: auto;
+      padding: 26px 30px;
+    }
+    .td-section {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .td-section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #fafafa;
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .td-hint { font-size: 13px; font-weight: 400; color: var(--text-faint); }
+    .td-hint code {
+      font-family: var(--mono);
+      background: #f3f4f6;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 12px;
+    }
+
+    .var-table { display: flex; flex-direction: column; }
+    .var-row {
+      display: grid;
+      grid-template-columns: 1.1fr 90px 1.6fr 1.3fr;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .var-row:last-child { border-bottom: none; }
+    .var-row.head {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+      font-weight: 600;
+      background: #fff;
+    }
+    .var-name { font-family: var(--mono); font-weight: 600; color: var(--text); }
+    .var-value {
+      font-family: var(--mono);
+      color: var(--text-muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .var-line { color: var(--text-faint); font-family: var(--mono); font-size: 13px; }
+    .var-source {
+      color: var(--text-faint);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .type-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      text-transform: lowercase;
+    }
+    .type-string  { background: #eef2ff; color: #4338ca; }
+    .type-number  { background: #ecfdf5; color: #047857; }
+    .type-boolean { background: #fef3c7; color: #b45309; }
+    .type-null    { background: #f3f4f6; color: #6b7280; }
+    .type-object  { background: #fae8ff; color: #a21caf; }
+    .type-array   { background: #ffe4e6; color: #be123c; }
+    .type-screen  { background: #e0f2fe; color: #0369a1; }
+    .type-ai      { background: #ede9fe; color: #6d28d9; }
+    .type-api     { background: #d1fae5; color: #047857; }
+
+    .var-empty {
+      padding: 50px 20px;
+      text-align: center;
+      color: var(--text-faint);
+      font-size: 14px;
+    }
+
+    /* Section action buttons + dropdown */
+    .td-section-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .td-section-actions .btn { padding: 9px 14px; font-size: 14px; }
+    .chev { font-size: 11px; opacity: 0.8; }
+
+    .dropdown { position: relative; }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 20;
+      width: 280px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      padding: 6px;
+    }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      padding: 10px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: var(--sans);
+    }
+    .dropdown-item:hover { background: #f5f3ff; }
+    .dropdown-item strong { font-size: 14px; color: var(--text); }
+    .dropdown-item span { font-size: 12.5px; color: var(--text-muted); }
+
+    /* Data file rows */
+    .datafile-list { display: flex; flex-direction: column; }
+    .datafile-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .datafile-row:last-child { border-bottom: none; }
+    .datafile-icon {
+      width: 38px; height: 38px;
+      border-radius: 9px;
+      background: var(--purple-soft);
+      color: var(--purple);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .datafile-info { min-width: 0; }
+    .datafile-name { font-weight: 600; font-size: 14.5px; }
+    .datafile-sub {
+      font-size: 12.5px; color: var(--text-faint);
+      font-family: var(--mono);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .source-tag {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: 999px;
+      text-transform: lowercase;
+    }
+    .source-variables { background: #ecfeff; color: #0e7490; }
+    .source-blank     { background: #f3f4f6; color: #6b7280; }
+    .source-import    { background: #fef3c7; color: #b45309; }
+    .datafile-actions { display: flex; gap: 6px; }
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .icon-btn { display: inline-flex; align-items: center; gap: 5px; }
+    .icon-btn:hover { background: var(--bg-soft); border-color: var(--text-faint); }
+    .icon-btn.danger:hover { color: #ef4444; border-color: #fecaca; background: #fef2f2; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(17, 24, 39, 0.45);
+      z-index: 100;
+      align-items: center; justify-content: center;
+      padding: 30px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      width: min(720px, 100%);
+      max-height: 80vh;
+      background: #fff;
+      border-radius: 16px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-weight: 600; font-size: 16px; font-family: var(--mono); }
+    .modal-x {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border: none; background: transparent; cursor: pointer;
+      font-size: 16px; color: var(--text-muted); border-radius: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-x:hover { background: var(--bg-soft); color: var(--text); }
+    .modal-text {
+      flex: 1;
+      min-height: 320px;
+      border: none; outline: none; resize: none;
+      padding: 18px 20px;
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.7;
+      white-space: pre;
+      color: var(--text);
+    }
+    .modal-foot {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ---------- Views ---------- */
+    .view { display: none; flex-direction: column; flex: 1; min-height: 0; }
+    .view.active { display: flex; }
+
+    /* ---------- Projects view ---------- */
+    .projects-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 30px 20px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+    .projects-title { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+    .projects-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
+
+    .projects-body {
+      flex: 1;
+      overflow: auto;
+      padding: 26px 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+      align-content: start;
+    }
+
+    .file-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      cursor: pointer;
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 150px;
+    }
+    .file-card:hover {
+      border-color: var(--purple-light);
+      box-shadow: 0 6px 20px rgba(109, 40, 217, 0.10);
+      transform: translateY(-2px);
+    }
+
+    .file-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .file-card-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      background: var(--purple-soft);
+      color: var(--purple);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .file-card-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .file-card-preview {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      background: #fafafa;
+      border-radius: 8px;
+      padding: 10px 12px;
+      overflow: hidden;
+      white-space: pre;
+      text-overflow: ellipsis;
+      max-height: 80px;
+    }
+    .file-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--text-faint);
+    }
+    .file-card-del {
+      display: inline-flex; align-items: center; gap: 5px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-faint);
+      padding: 5px 8px;
+      border-radius: 7px;
+    }
+    .file-card-del:hover { color: #ef4444; background: #fef2f2; }
+
+    /* Datasets toolbar (search left, actions right) */
+    .ds-toolbar-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 10px;
+    }
+    .ds-toolbar-row .btn { height: 40px; }
+    .ds-stats {
+      font-size: 13px; color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .ds-stats b { color: var(--text); font-weight: 600; }
+
+    /* Datasets as compact file cards (5 across) */
+    .dataset-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .ds-card {
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: #fff;
+      padding: 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+    .ds-card:hover {
+      border-color: var(--purple-light);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+    .ds-card-head { display: flex; align-items: center; gap: 8px; }
+    .ds-card-icon {
+      width: 28px; height: 28px; flex: none;
+      border-radius: 7px;
+      background: var(--purple-soft); color: var(--purple);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ds-card-icon .ico { width: 15px; height: 15px; }
+    .ds-card-name {
+      flex: 1; min-width: 0;
+      font-size: 13px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ds-card-meta {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    .ds-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); flex: none;
+    }
+    .ds-card-foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      margin-top: 2px; padding-top: 8px; border-top: 1px solid var(--border);
+    }
+    .ds-card-by {
+      min-width: 0; flex: 1;
+      font-size: 11px; color: var(--text-faint);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ds-card-del {
+      flex: none;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px;
+      border: none; background: transparent; cursor: pointer;
+      color: var(--text-faint); border-radius: 6px;
+    }
+    .ds-card-del .ico { width: 14px; height: 14px; }
+    .ds-card-del:hover { color: #ef4444; background: #fef2f2; }
+
+    /* Dataset search + pagination */
+    .ds-search {
+      position: relative; display: inline-flex; align-items: center;
+    }
+    .ds-search-ico {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text-faint); display: inline-flex;
+    }
+    .ds-search-ico .ico { width: 16px; height: 16px; }
+    .ds-search input {
+      width: 300px; max-width: 42vw; height: 40px;
+      padding: 0 12px 0 36px;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      font-family: var(--sans); font-size: 14px;
+      outline: none; color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+    .ds-search input:focus { border-color: var(--purple); }
+    .ds-pager {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-top: 22px;
+    }
+    .ds-pager:empty { display: none; }
+    .ds-pager-count { font-size: 13px; color: var(--text-faint); }
+    .ds-pager-sel { display: flex; align-items: center; gap: 6px; }
+    .ds-pager button {
+      min-width: 34px; height: 34px; padding: 0 10px;
+      border: 1px solid var(--border-strong); background: #fff;
+      border-radius: 9px; cursor: pointer; color: var(--text-muted);
+      font-family: var(--sans); font-size: 13.5px; font-weight: 500;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .ds-pager button:hover:not(:disabled) { background: var(--bg-soft); border-color: var(--text-faint); }
+    .ds-pager button.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+    .ds-pager button:disabled { opacity: 0.4; cursor: default; }
+
+    .projects-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--text-faint);
+    }
+    .projects-empty .big { font-size: 46px; margin-bottom: 12px; color: var(--text-faint); }
+    .projects-empty .big .ico { width: 44px; height: 44px; stroke-width: 1.4; }
+    .projects-empty .sub { font-size: 15px; }
+
+    /* Unsaved-changes indicator on the tab */
+    .dirty-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      display: none;
+    }
+    .dirty-dot.show { display: inline-block; }
+
+    /* ---------- Main ---------- */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+
+    .tab-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      color: var(--text);
+    }
+
+    .new-file-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-muted);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .new-file-btn:hover {
+      background: #f5f3ff;
+      color: var(--purple);
+      border-color: var(--purple-light);
+    }
+
+    .tab .file-icon { opacity: 0.6; }
+
+    .tab .close {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-faint);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .tab .close:hover { background: #f3f4f6; }
+
+    .actions { display: flex; align-items: center; gap: 14px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: #fff;
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--sans);
+      box-shadow: var(--shadow-sm);
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+    }
+    .btn:hover { background: var(--bg-soft); border-color: var(--text-faint); }
+    .btn:active { transform: translateY(1px); }
+
+    .btn.primary {
+      background: var(--purple);
+      color: #fff;
+      border-color: var(--purple);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(109, 40, 217, 0.25);
+    }
+    .btn.primary:hover { background: var(--purple-light); border-color: var(--purple-light); }
+
+    .btn.danger {
+      background: var(--red); color: #fff; border-color: var(--red); font-weight: 600;
+      box-shadow: 0 1px 2px rgba(239, 68, 68, 0.25);
+    }
+    .btn.danger:hover { background: #dc2626; border-color: #dc2626; }
+
+    /* In-app confirm dialog */
+    .confirm-modal {
+      width: min(400px, 100%);
+      padding: 26px 24px 20px;
+      align-items: center; text-align: center;
+      gap: 0;
+    }
+    .confirm-icon {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #fef2f2; color: var(--red); margin-bottom: 14px;
+    }
+    .confirm-icon.warning { background: #fff7ed; color: var(--orange); }
+    .confirm-icon.danger { background: #fef2f2; color: var(--red); }
+    .confirm-icon .ico { width: 22px; height: 22px; }
+    .confirm-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .confirm-msg { font-size: 14px; color: var(--text-muted); line-height: 1.55; margin-bottom: 22px; }
+    .confirm-actions { display: flex; gap: 10px; width: 100%; }
+    .confirm-actions .btn { flex: 1; justify-content: center; }
+
+    /* Editor */
+    .editor-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .editor {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      min-height: 0;
+      font-family: var(--mono);
+      font-size: 17px;
+      line-height: 1.9;
+    }
+
+    .gutter {
+      flex-shrink: 0;
+      width: 70px;
+      height: 100%;
+      overflow: hidden;
+      color: var(--text-faint);
+      user-select: none;
+    }
+    .gutter-inner {
+      padding: 18px 26px 18px 0;
+      text-align: right;
+      white-space: pre;
+      will-change: transform;
+    }
+
+    /* The editable area: highlighted layer behind, transparent textarea on top */
+    .code-area {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .code-layer,
+    .code-input {
+      margin: 0;
+      border: 0;
+      font-family: var(--mono);
+      font-size: 17px;
+      line-height: 1.9;
+      padding: 18px 24px 18px 4px;
+      white-space: pre;
+      tab-size: 4;
+      overflow-wrap: normal;
+      box-sizing: border-box;
+    }
+
+    .code-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .code-input {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+      resize: none;
+      background: transparent;
+      color: transparent;
+      caret-color: var(--text);
+      outline: none;
+      overflow: auto;
+    }
+    .code-input::selection { background: rgba(124, 58, 237, 0.18); }
+
+    .kw { color: var(--code-purple); font-weight: 500; }
+    .fn { color: #0369a1; font-weight: 500; }
+
+    /* {{variable}} references in the editor */
+    .var-ref {
+      color: #0e7490;
+      background: #ecfeff;
+      border-radius: 4px;
+      padding: 0 1px;
+    }
+    .var-ref.unknown {
+      color: #dc2626;
+      background: #fef2f2;
+    }
+    .var-ref .ref-file { color: var(--purple); font-weight: 700; }
+    .var-ref.unknown .ref-file { color: #b91c1c; }
+
+    /* {{ }} autocomplete dropdown */
+    .var-suggest {
+      display: none;
+      position: absolute;
+      z-index: 30;
+      min-width: 220px;
+      max-width: 320px;
+      max-height: 240px;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.14);
+      padding: 6px;
+      font-family: var(--sans);
+    }
+    .var-suggest.open { display: block; }
+    .vs-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .vs-row.sel, .vs-row:hover { background: #f5f3ff; }
+    .vs-row .vs-var-name { font-family: var(--mono); font-weight: 600; color: var(--text); flex: 1; }
+    .vs-row .type-badge { font-size: 10px; padding: 2px 7px; }
+    .vs-empty { padding: 10px 12px; font-size: 13px; color: var(--text-faint); }
+
+    /* Editor footer */
+    .editor-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 22px;
+      border-top: 1px solid var(--border);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .chip:hover { background: #f9fafb; }
+
+    .footer-right { display: flex; align-items: center; gap: 26px; }
+
+    .shortcut {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 15px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .keys {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-faint);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 7px;
+    }
+
+    /* Logs */
+    .logs {
+      height: 300px;
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logs-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      gap: 16px;
+    }
+
+    .logs-title { font-size: 18px; font-weight: 600; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .rec-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+
+    .logs-tools { display: flex; align-items: center; gap: 22px; }
+
+    .logs-body {
+      flex: 1;
+      overflow: auto;
+      padding: 8px 22px;
+      font-family: var(--mono);
+      font-size: 16px;
+    }
+    .log-ts { color: var(--purple); }
+    .log-msg { color: var(--text-faint); }
+    .log-line { padding: 1px 0; }
+    .log-line.info .log-msg    { color: var(--text); }
+    .log-line.step .log-msg    { color: var(--text); }
+    .log-line.step .log-cmd    { color: var(--code-purple); font-weight: 600; }
+    .log-line.success .log-msg { color: #059669; font-weight: 600; }
+    .log-line.error .log-msg   { color: #dc2626; font-weight: 600; }
+    .log-line.muted .log-msg   { color: var(--text-faint); }
+    .log-idx  { color: var(--text-faint); margin-right: 10px; }
+    .log-pass { color: #059669; font-weight: 600; margin-left: 8px; }
+    .log-fail { color: #dc2626; font-weight: 600; margin-left: 8px; }
+    .log-data { color: var(--text-muted); }
+    .log-data b { color: var(--text); font-weight: 600; }
+
+    /* Running state */
+    .rec-dot.running { animation: pulse 0.9s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(0.8); }
+    }
+    .btn.primary:disabled { opacity: 0.6; cursor: default; }
+
+    /* Split run button */
+    .run-group { position: relative; display: inline-flex; }
+    .run-main { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+    .run-caret {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-left: 1px solid rgba(255,255,255,0.3);
+      padding-left: 11px;
+      padding-right: 11px;
+      font-size: 12px;
+    }
+    .run-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 40;
+      width: 320px;
+      max-height: 360px;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.16);
+      padding: 6px;
+    }
+    .run-menu.open { display: block; }
+    .run-menu-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+      padding: 10px 12px 4px;
+    }
+    .run-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      padding: 10px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text);
+    }
+    .run-opt:hover:not(:disabled) { background: #f5f3ff; }
+    .run-opt:disabled { cursor: default; opacity: 0.55; }
+    .run-opt .ro-icon { flex-shrink: 0; }
+    .run-opt .ro-body { min-width: 0; flex: 1; }
+    .run-opt .ro-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .run-opt .ro-sub { font-size: 12px; color: var(--text-muted); }
+    .run-opt .ro-sub.miss { color: #dc2626; }
+    .run-menu-divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    /* V3: editor disconnected from datasets → no run dropdown, just Run Test */
+    body.mode-v3 .run-caret { display: none; }
+    body.mode-v3 .run-main { border-radius: 12px; }
+    .run-file-head {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text);
+      padding: 10px 12px 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .run-opt.index-opt { padding-left: 20px; }
+    .run-opt.index-opt .ro-icon {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-faint);
+      min-width: 22px;
+    }
+    .run-opt.index-opt .ro-name { font-size: 13px; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="brand"><span class="brand-mark" data-ico="beaker"></span>Drizz Studio</div>
+      <button class="collapse-btn" id="collapseBtn" title="Collapse sidebar" onclick="toggleSidebar()">«</button>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" id="navEditor" onclick="switchView('editor')">
+        <span class="icon" data-ico="file-text"></span>
+        <span>Editor</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon" data-ico="code"></span>
+        <span>My APIs</span>
+      </div>
+      <div class="nav-item" id="navProjects" onclick="switchView('projects')">
+        <span class="icon" data-ico="folder"></span>
+        <span>Projects</span>
+      </div>
+      <div class="nav-item" id="navTestData" onclick="switchView('testdata')">
+        <span class="icon" data-ico="database"></span>
+        <span>Datasets</span>
+      </div>
+      <div class="nav-item" id="navPlans" onclick="switchView('plans')">
+        <span class="icon" data-ico="clipboard-check"></span>
+        <span>Test Plans</span>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+   <!-- ===== Editor view ===== -->
+   <div class="view active" id="editorView">
+    <div class="topbar v1-only">
+      <div class="tab-group">
+        <div class="tab">
+          <span class="file-icon" data-ico="file-text"></span>
+          <span id="tabName">Untitled File</span>
+          <span class="dirty-dot" id="dirtyDot" title="Unsaved changes"></span>
+          <span class="close" data-ico="x"></span>
+        </div>
+        <button class="new-file-btn" title="New file" onclick="newFile()" data-ico="plus"></button>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="saveFile()"><span data-ico="save"></span> Save</button>
+        <button class="btn"><span data-ico="smartphone"></span> Connect Device</button>
+        <div class="run-group">
+          <button class="btn primary run-main" id="runBtn" onclick="runTest()"><span id="runIcon" data-ico="play" data-ico-fill="1"></span> <span id="runLabel">Run Test</span></button>
+          <button class="btn primary run-caret" id="runCaret" title="Run options" onclick="toggleRunMenu(event)" data-ico="chevron-down"></button>
+          <div class="run-menu" id="runMenu"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor-wrap v1-only">
+      <div class="editor">
+        <div class="gutter"><div class="gutter-inner" id="gutter">1</div></div>
+        <div class="code-area">
+          <pre class="code-layer" id="highlight" aria-hidden="true"></pre>
+          <textarea
+            class="code-input"
+            id="codeInput"
+            spellcheck="false"
+            autocomplete="off"
+            autocapitalize="off"
+            wrap="off"
+            placeholder="Type your test commands here…"></textarea>
+          <div class="var-suggest" id="varSuggest"></div>
+        </div>
+      </div>
+
+      <div class="editor-footer">
+        <div class="chip"><span data-ico="lightbulb"></span> Tips</div>
+        <div class="footer-right">
+          <div class="shortcut"><span class="keys">⌘ Y</span> Examples</div>
+          <div class="shortcut"><span class="keys">⌘ \</span> Command Guide</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2 placeholder (Single YAML — not built yet) -->
+    <div class="v2-placeholder v2-only">
+      <div class="big">🧾</div>
+      <h2>Single YAML</h2>
+      <div class="pill">V2 · Not implemented</div>
+      <p>This version will let you define an entire test as one YAML document. Active development is happening on <strong>V1 · Import File</strong> — switch back using the toggle in the bottom-left.</p>
+    </div>
+
+    <!-- Logs -->
+    <section class="logs v1-only">
+      <div class="logs-header">
+        <div class="logs-title">Logs</div>
+        <div class="status-badge" id="statusBadge">
+          <span class="rec-dot"></span>
+          <span>🐱</span>
+          <span id="statusText">“Drizzly can't see a device”</span>
+        </div>
+        <div class="logs-tools">
+          <div class="shortcut" onclick="copyLogs()"><span data-ico="copy"></span> Copy Logs</div>
+          <div class="shortcut" onclick="clearLogs()"><span data-ico="eraser"></span> Clear</div>
+          <div class="shortcut" onclick="scrollLogsBottom()"><span data-ico="chevron-down"></span> Scroll to Bottom</div>
+        </div>
+      </div>
+      <div class="logs-body" id="logsBody">
+        <div class="log-line"><span class="log-ts">[11:22:06]</span> <span class="log-msg">Start executing test to see logs</span></div>
+      </div>
+    </section>
+   </div><!-- /editorView -->
+
+   <!-- ===== Projects view ===== -->
+   <div class="view" id="projectsView">
+    <div class="projects-header">
+      <div>
+        <h1 class="projects-title">Projects</h1>
+        <p class="projects-sub" id="projectsCount">All your saved test files</p>
+      </div>
+      <button class="btn primary" onclick="newFile()"><span>＋</span> New File</button>
+    </div>
+    <div class="projects-body" id="projectsGrid"></div>
+   </div><!-- /projectsView -->
+
+   <!-- ===== Test Data view ===== -->
+   <div class="view" id="testDataView">
+    <div class="projects-header">
+      <div>
+        <h1 class="projects-title">Datasets</h1>
+        <p class="projects-sub" id="varCount">A data repository for all the variables.</p>
+      </div>
+    </div>
+    <div class="testdata-body">
+
+      <!-- Section 1: Variables (hidden in V3 — datasets only) -->
+      <div class="td-section notv3">
+        <div class="td-section-head">
+          <span>Variables</span>
+          <span class="td-hint">Default variables defined via <code>SET name = value</code></span>
+        </div>
+        <div class="var-table" id="varTable"></div>
+      </div>
+
+      <!-- Section 2b: Datasets (V3) -->
+      <div class="v3-only">
+        <div class="ds-toolbar-row">
+          <div class="ds-search">
+            <span class="ds-search-ico" data-ico="search"></span>
+            <input id="datasetSearch" type="text" placeholder="Search file name or variable…" oninput="onDatasetSearch()" />
+          </div>
+          <span style="flex:1"></span>
+          <button class="btn" onclick="importDatasetToEditor()"><span data-ico="upload"></span> Import YAML</button>
+          <input type="file" id="datasetImportInput" accept=".yaml,.yml,text/yaml,text/plain" hidden />
+          <button class="btn primary" onclick="newDataset()"><span data-ico="plus"></span> Create Dataset</button>
+        </div>
+        <div class="ds-stats" id="datasetStats"></div>
+        <div class="dataset-grid" id="datasetList"></div>
+        <div class="ds-pager" id="datasetPager"></div>
+      </div>
+
+      <!-- Section 2: Test Data (YAML data files) -->
+      <div class="td-section notv3" style="margin-top: 24px;">
+        <div class="td-section-head">
+          <span>Test Data</span>
+          <span class="td-hint">YAML data files for data-driven runs</span>
+          <div class="td-section-actions">
+            <div class="dropdown">
+              <button class="btn primary" onclick="toggleCreateMenu(event)">
+                <span data-ico="plus"></span> Create Data YAML file <span class="chev" data-ico="chevron-down"></span>
+              </button>
+              <div class="dropdown-menu" id="createMenu">
+                <button class="dropdown-item" onclick="createDataFile('variables')">
+                  <strong>With Variables</strong>
+                  <span>Pre-fill keys from your variables, blank values</span>
+                </button>
+                <button class="dropdown-item" onclick="createDataFile('blank')">
+                  <strong>Blank</strong>
+                  <span>Start from an empty file</span>
+                </button>
+              </div>
+            </div>
+            <button class="btn" onclick="importDataFile()"><span data-ico="upload"></span> Import Data YAML file</button>
+            <input type="file" id="dataFileInput" accept=".yaml,.yml,text/yaml,text/plain" hidden />
+          </div>
+        </div>
+        <div class="datafile-list" id="dataFileList"></div>
+      </div>
+
+    </div>
+   </div><!-- /testDataView -->
+
+   <!-- ===== Test Plans view ===== -->
+   <div class="view" id="plansView">
+    <div class="projects-header">
+      <div>
+        <h1 class="projects-title">Test Plans</h1>
+        <p class="projects-sub">Select test cases, resolve all their variables once, and run them together.</p>
+      </div>
+      <button class="btn primary" id="planRunBtn" onclick="runPlanFromBuilder()"><span data-ico="play" data-ico-fill="1"></span> Run Plan</button>
+    </div>
+    <div class="plans-body">
+      <div class="td-section">
+        <div class="td-section-head">
+          <span>Saved plans</span>
+          <span class="td-hint">A red dot means a dataset it uses was deleted</span>
+        </div>
+        <div class="datafile-list" id="savedPlansList"></div>
+      </div>
+      <div class="td-section" style="margin-top: 24px;">
+        <div class="td-section-head">
+          <span>Select test cases</span>
+          <span class="td-hint">Saved test cases from Projects</span>
+        </div>
+        <div class="plan-cases" id="planCases"></div>
+      </div>
+      <div class="td-section" style="margin-top: 24px;">
+        <div class="td-section-head">
+          <span>Variables in this plan</span>
+          <span class="td-hint">Union of <code>{{variables}}</code> across the selected cases</span>
+        </div>
+        <div class="var-table" id="planVarTable"></div>
+      </div>
+
+      <div class="td-section" style="margin-top: 24px;">
+        <div class="td-section-head"><span>Run mode</span></div>
+        <div style="padding: 14px 18px;">
+          <label class="plan-case" style="border:none; padding:0;">
+            <input type="checkbox" id="planLoop" onchange="renderPlanLoop()" />
+            <div><div class="pc-name">Run in loop</div>
+              <div class="pc-sub">Run every combination of the selected datasets (cartesian product)</div></div>
+          </label>
+          <div id="planLoopConfig" style="display:none; margin-top: 14px;">
+            <div class="td-hint" style="margin-bottom: 8px;">Loop over these datasets:</div>
+            <div id="planLoopTables"></div>
+            <div id="planLoopCount" style="margin-top: 12px; font-weight: 600; color: var(--purple);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+   </div><!-- /plansView -->
+
+   <!-- Test plan attempts modal -->
+   <div class="modal-overlay" id="loopPreviewModal" onclick="if(event.target===this)closeLoopPreview()">
+     <div class="modal" style="width:min(760px,100%)">
+       <div class="modal-head">
+         <span class="modal-title">Test plan — attempts</span>
+         <button class="modal-x" onclick="closeLoopPreview()" data-ico="x"></button>
+       </div>
+       <div class="resolve-body">
+         <p class="resolve-hint" id="loopPreviewHint"></p>
+         <div id="loopPreviewBody"></div>
+       </div>
+       <div class="modal-foot">
+         <button class="btn" onclick="savePlanFromPreview()"><span data-ico="save"></span> Save plan</button>
+         <span style="flex:1"></span>
+         <button class="btn primary" onclick="runLoopFromPreview()"><span data-ico="play" data-ico-fill="1"></span> Run all</button>
+       </div>
+     </div>
+   </div>
+
+   <!-- YAML data file editor modal -->
+   <div class="modal-overlay" id="dataModal" onclick="if(event.target===this)closeDataModal()">
+     <div class="modal">
+       <div class="modal-head">
+         <span class="modal-title" id="dataModalTitle">data.yaml</span>
+         <button class="modal-x" onclick="closeDataModal()" data-ico="x"></button>
+       </div>
+       <textarea class="modal-text" id="dataModalText" spellcheck="false" wrap="off"></textarea>
+       <div class="modal-foot">
+         <button class="btn" onclick="downloadDataFile()"><span data-ico="download"></span> Download</button>
+         <button class="btn primary" onclick="saveDataModal()"><span data-ico="save"></span> Save</button>
+       </div>
+     </div>
+   </div>
+
+   <!-- YAML test-data editor modal -->
+   <div class="modal-overlay" id="datasetModal" onclick="if(event.target===this)closeDatasetModal()">
+     <div class="modal" style="width:min(720px,100%)">
+       <div class="modal-head ds-head">
+         <div class="ds-name-input">
+           <span class="ds-name-ico" data-ico="file-text"></span>
+           <input id="datasetName" placeholder="File name" spellcheck="false" autocomplete="off" />
+           <span class="ds-name-ext">.yaml</span>
+         </div>
+         <div class="ds-head-actions">
+           <button class="btn" onclick="dsImportFile()"><span data-ico="upload"></span> Import YAML</button>
+           <input type="file" id="dsFileInput" accept=".yaml,.yml,text/yaml,text/plain" hidden />
+           <button class="modal-x" onclick="closeDatasetModal()" data-ico="x"></button>
+         </div>
+       </div>
+       <div class="ds-modal-body">
+        <div class="ds-editor">
+         <div class="ds-gutter" id="dsGutter">1</div>
+         <div class="ds-code-area">
+           <pre class="ds-highlight" id="dsHighlight" aria-hidden="true"></pre>
+           <textarea class="ds-text" id="dsPaneYaml" spellcheck="false" wrap="off"
+             oninput="dsRender()" onscroll="dsSyncScroll()"></textarea>
+           <div class="ds-find" id="dsFind">
+             <span class="ds-find-ico" data-ico="search"></span>
+             <input id="dsFindInput" placeholder="Find" oninput="dsFindUpdate()" onkeydown="dsFindKey(event)" />
+             <span class="ds-find-count" id="dsFindCount">0/0</span>
+             <button class="ds-find-btn" title="Previous (Shift+Enter)" onclick="dsFindGo(-1)" data-ico="chevron-up"></button>
+             <button class="ds-find-btn" title="Next (Enter)" onclick="dsFindGo(1)" data-ico="chevron-down"></button>
+             <button class="ds-find-btn" title="Close (Esc)" onclick="dsFindClose()" data-ico="x"></button>
+           </div>
+         </div>
+        </div>
+       </div>
+       <div class="modal-foot">
+         <span class="td-hint">Types: string, number, boolean, list, object (max 2 levels deep).</span>
+         <span style="flex:1"></span>
+         <button class="btn primary" onclick="saveDataset()"><span data-ico="save"></span> Save</button>
+       </div>
+     </div>
+   </div>
+
+   <!-- Generic in-app confirm dialog -->
+   <div class="modal-overlay" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+     <div class="modal confirm-modal">
+       <div class="confirm-icon" id="confirmIcon" data-ico="trash"></div>
+       <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+       <div class="confirm-msg" id="confirmMsg"></div>
+       <div class="confirm-actions">
+         <button class="btn" id="confirmCancel" onclick="closeConfirm()">Cancel</button>
+         <button class="btn danger" id="confirmOk">Delete</button>
+       </div>
+     </div>
+   </div>
+
+   <!-- Resolve-missing-data modal (V3) -->
+   <div class="modal-overlay" id="resolveModal" onclick="if(event.target===this)closeResolveModal()">
+     <div class="modal" style="width:min(900px,100%)">
+       <div class="modal-head">
+         <span class="modal-title">Resolve test data</span>
+         <button class="modal-x" onclick="closeResolveModal()" data-ico="x"></button>
+       </div>
+       <div class="resolve-body">
+         <p class="resolve-hint">Pick a variable on the left; resolve it on the right. Status dots update as you go.</p>
+         <div class="resolve-split">
+           <div class="resolve-list" id="resolveList"></div>
+           <div class="resolve-detail" id="resolveDetail"></div>
+         </div>
+       </div>
+       <div class="modal-foot">
+         <span class="resolve-foot-status" id="resolveFootStatus"></span>
+         <span style="flex:1"></span>
+         <button class="btn" onclick="resolveCreateDataset()"><span data-ico="plus"></span> New dataset</button>
+         <button class="btn primary" id="resolveRunBtn" onclick="resolveAndRun()"><span data-ico="play" data-ico-fill="1"></span> Run</button>
+       </div>
+     </div>
+   </div>
+  </main>
+
+  <script>
+    /* ---------- Inline SVG icon set (Lucide-style strokes) ---------- */
+    const ICON_PATHS = {
+      'file-text': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+      'code': '<path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/>',
+      'folder': '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/>',
+      'database': '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+      'clipboard-check': '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+      'save': '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/>',
+      'smartphone': '<rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M12 18h.01"/>',
+      'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
+      'square': '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+      'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+      'plus': '<path d="M12 5v14"/><path d="M5 12h14"/>',
+      'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+      'trash': '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+      'upload': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>',
+      'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+      'lightbulb': '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5"/>',
+      'copy': '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+      'eraser': '<path d="m20 20-9 0"/><path d="M3 11.5 8.5 6a2 2 0 0 1 2.8 0l4.7 4.7a2 2 0 0 1 0 2.8L11 19H6.5L3 15.5a2.8 2.8 0 0 1 0-4Z"/>',
+      'check': '<path d="M20 6 9 17l-5-5"/>',
+      'flask': '<path d="M9 3h6"/><path d="M10 3v6.6L4.7 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.7-2.8L14 9.6V3"/>',
+      'beaker': '<path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/>',
+      'search': '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+      'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+      'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+      'chevron-up': '<path d="m18 15-6-6-6 6"/>',
+      'alert-triangle': '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+    };
+    function svgIcon(name, cls) {
+      const p = ICON_PATHS[name]; if (!p) return '';
+      return '<svg class="ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>';
+    }
+    // Replace every <… data-ico="name"> placeholder in static markup with its SVG.
+    function hydrateIcons(root) {
+      (root || document).querySelectorAll('[data-ico]').forEach(el => {
+        el.innerHTML = svgIcon(el.dataset.ico, el.dataset.icoFill ? 'fill' : '');
+      });
+    }
+
+    // Current signed-in user (used to stamp "created by" on datasets).
+    const USER_EMAIL = 'cs@drizz.dev';
+
+    /* ---------- In-app dialogs (replace window.confirm / window.alert) ---------- */
+    let confirmCb = null;
+    function appConfirm(opts, onOk) {
+      confirmCb = onOk || null;
+      const variant = opts.variant || 'danger';          // danger | warning
+      const icon = document.getElementById('confirmIcon');
+      icon.className = 'confirm-icon ' + variant;
+      icon.innerHTML = svgIcon(opts.icon || (variant === 'warning' ? 'alert-triangle' : 'trash'));
+      document.getElementById('confirmTitle').textContent = opts.title || 'Are you sure?';
+      document.getElementById('confirmMsg').textContent = opts.message || '';
+      const ok = document.getElementById('confirmOk');
+      ok.textContent = opts.confirmLabel || 'Confirm';
+      ok.className = 'btn ' + (variant === 'warning' ? 'primary' : 'danger');
+      document.getElementById('confirmCancel').style.display = opts.alert ? 'none' : '';
+      ok.onclick = () => { const cb = confirmCb; closeConfirm(); if (cb) cb(); };
+      document.getElementById('confirmModal').classList.add('open');
+      ok.focus();
+    }
+    // Single-button error/notice dialog.
+    function appAlert(title, message) {
+      appConfirm({ title: title, message: message, confirmLabel: 'OK', variant: 'warning', alert: true }, null);
+    }
+    function closeConfirm() {
+      document.getElementById('confirmModal').classList.remove('open');
+      confirmCb = null;
+    }
+
+    /* ---------- Prototype version toggle ---------- */
+    // Dataset is the only mode now.
+    function setVersion(v) {
+      window.APP_VERSION = 3;
+      document.body.classList.add('mode-v3');
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const btn = document.getElementById('collapseBtn');
+      const collapsed = sidebar.classList.toggle('collapsed');
+      btn.textContent = collapsed ? '»' : '«';
+      btn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    }
+
+    /* ---------- Code editor ---------- */
+    const input = document.getElementById('codeInput');
+    const highlight = document.getElementById('highlight');
+    const gutter = document.getElementById('gutter');
+
+    // Command keywords that get the purple highlight
+    const KEYWORDS = [
+      'OPEN_APP', 'CLOSE_APP', 'TAP', 'LONG_PRESS', 'TYPE', 'WAIT',
+      'ASSERT', 'SCROLL', 'SWIPE', 'BACK', 'RUN', 'SET', 'API', 'IF', 'ELSE', 'END'
+    ];
+    const KW_RE = new RegExp('^(\\s*)(' + KEYWORDS.join('|') + ')\\b', '');
+
+    function escapeHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // A reference token. Two forms:
+    //   {{var}} / {{var.path}}      — a SET local variable (optionally a path into a SET object)
+    //   {{@file.attr.sub}}          — a dataset reference: @ + file name, then the nested path
+    const REF_RE = /\{\{\s*(@?[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*\}\}/g;
+
+    // Split a ref into its parts. Dataset refs start with '@'.
+    function parseRef(ref) {
+      if (ref[0] === '@') {
+        const segs = ref.slice(1).split('.');
+        return { kind: 'dataset', file: segs[0], path: segs.slice(1) };
+      }
+      return { kind: 'var', name: ref };
+    }
+
+    // Walk an object/array along path segments. Returns undefined if any step is missing.
+    function getPath(obj, segs) {
+      let cur = obj;
+      for (let i = 0; i < segs.length; i++) {
+        if (cur == null || typeof cur !== 'object') return undefined;
+        cur = cur[segs[i]];
+      }
+      return cur;
+    }
+    // Resolve a ref-path inside one record: find the root key anywhere (deep), then walk the rest.
+    function deepGetPath(rec, ref) {
+      const segs = ref.split('.');
+      const root = deepGet(rec, segs[0]);
+      return segs.length === 1 ? root : getPath(root, segs.slice(1));
+    }
+    // Does any dataset contain this ref-path (root key at any depth, then the sub-path)?
+    function datasetsHavePath(ref) {
+      return loadDatasets().some(ds =>
+        datasetRichRecords(ds).some(rec => deepGetPath(rec, ref) !== undefined));
+    }
+
+    // Known if: a dataset ref @file.path resolves in that file, or a SET local var (or path into one).
+    function refIsKnown(ref) {
+      const p = parseRef(ref);
+      if (p.kind === 'dataset') {
+        const ds = loadDatasets().find(d => d.name === p.file);
+        if (!ds) return false;
+        if (!p.path.length) return true;                      // @file alone
+        return datasetRichRecords(ds).some(rec => getPath(rec, p.path) !== undefined);
+      }
+      const setMap = parseSetMap(input.value);
+      if (setMap.has(ref)) return true;                       // exact SET var
+      const segs = ref.split('.');
+      if (segs.length > 1 && setMap.has(segs[0])) {           // path into a SET object/array
+        const info = setMap.get(segs[0]);
+        if (info.type === 'object' || info.type === 'array') {
+          try { if (getPath(JSON.parse(info.value), segs.slice(1)) !== undefined) return true; } catch (e) {}
+        }
+      }
+      return false;
+    }
+
+    // Wrap {{ var }} / {{ @file.path }} references (operates on already-escaped text).
+    // The @file segment gets its own colour so "which part is the file" is always obvious.
+    function hlVarRefs(escaped) {
+      return escaped.replace(REF_RE, (full, ref) => {
+        let refHtml;
+        if (ref[0] === '@') {
+          const dot = ref.indexOf('.');
+          const filePart = dot >= 0 ? ref.slice(0, dot) : ref;
+          const rest = dot >= 0 ? ref.slice(dot) : '';
+          refHtml = '<span class="ref-file">' + escapeHtml(filePart) + '</span>' + escapeHtml(rest);
+        } else {
+          refHtml = escapeHtml(ref);
+        }
+        const inner = full.replace(ref, () => refHtml);   // function arg avoids $ substitution
+        return '<span class="var-ref' + (refIsKnown(ref) ? '' : ' unknown') + '">' + inner + '</span>';
+      });
+    }
+    // Highlight SET expression functions: screen() / ai() / api.name(...)
+    const HL_EXPR_RE = /\b(screen|ai|api\.[A-Za-z_$][\w$]*)(?=\s*\()/g;
+    function hlExprFns(escaped) {
+      return escaped.replace(HL_EXPR_RE, '<span class="fn">$1</span>');
+    }
+
+    function renderHighlight() {
+      const lines = input.value.split('\n');
+      highlight.innerHTML = lines.map(line => {
+        const m = line.match(KW_RE);
+        if (m) {
+          const rest = line.slice(m[0].length);
+          return m[1] + '<span class="kw">' + escapeHtml(m[2]) + '</span>' + hlExprFns(hlVarRefs(escapeHtml(rest)));
+        }
+        return hlExprFns(hlVarRefs(escapeHtml(line))) || ' ';
+      }).join('\n');
+    }
+
+    function renderGutter() {
+      const count = input.value.split('\n').length;
+      let out = '';
+      for (let i = 1; i <= count; i++) out += i + '\n';
+      gutter.textContent = out;
+    }
+
+    function syncScroll() {
+      highlight.scrollTop = input.scrollTop;
+      highlight.scrollLeft = input.scrollLeft;
+      gutter.style.transform = 'translateY(' + (-input.scrollTop) + 'px)';
+    }
+
+    function update() {
+      renderHighlight();
+      renderGutter();
+      syncScroll();
+    }
+
+    input.addEventListener('input', () => { rebuildVariables(); update(); markDirty(true); renderVariables(); updateSuggest(); });
+    input.addEventListener('scroll', () => { syncScroll(); if (varSuggest.classList.contains('open')) renderSuggest(); });
+    input.addEventListener('click', updateSuggest);
+    input.addEventListener('blur', () => setTimeout(closeSuggest, 120));
+
+    /* ---------- SET command → variables ---------- */
+    const SET_RE = /^\s*SET\s+([A-Za-z_$][\w$]*)\s*=\s*(.+?)\s*$/;
+
+    // ---- Dummy APIs: pretend these calls were made earlier in a test ----
+    // SET x = api.{name}("...") pulls a value out of one of these responses.
+    const DUMMY_APIS = {
+      loginApi:       { method: 'POST', path: '/auth/login',      status: 200, response: { token: 'tok_abc123', userId: 7781, status: 'ok' } },
+      createOrderApi: { method: 'POST', path: '/orders',          status: 201, response: { order_id: 'ORD-48817', amount: 499, currency: 'INR' } },
+      getProfileApi:  { method: 'GET',  path: '/users/me',        status: 200, response: { name: 'Raj', email: 'raj@example.com', tier: 'gold' } },
+      paymentApi:     { method: 'POST', path: '/payments/charge', status: 200, response: { txn_id: 'TXN-99210', state: 'captured', amount: 499 } },
+    };
+
+    // Match the SET expression functions: screen() | ai("hint") | api.name("path")
+    const EXPR_RE = /^(screen|ai)\s*\(\s*(?:(["'])([\s\S]*?)\2)?\s*\)$|^api\.([A-Za-z_$][\w$]*)\s*\(\s*(["'])([\s\S]*?)\5\s*\)$/;
+
+    // Infer a value's data type from its raw text.
+    // Literals: string, number, boolean, null, object, array.
+    // Expressions: screen(), ai(), api.{name}("...") — value resolved at run time.
+    function inferType(raw) {
+      const v = raw.trim();
+      const ex = v.match(EXPR_RE);
+      if (ex) {
+        if (ex[1]) return { type: ex[1], value: v, expr: { kind: ex[1], hint: ex[3] || '' } };
+        return { type: 'api', value: v, expr: { kind: 'api', api: ex[4], path: ex[6] } };
+      }
+      if (v === 'null') return { type: 'null', value: 'null' };
+      if (v === 'true' || v === 'false') return { type: 'boolean', value: v };
+      if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(v)) return { type: 'number', value: v };
+      if (v[0] === '[') {
+        try { return { type: 'array', value: JSON.stringify(JSON.parse(v)) }; }
+        catch (e) { return { type: 'array', value: v }; }
+      }
+      if (v[0] === '{') {
+        try { return { type: 'object', value: JSON.stringify(JSON.parse(v)) }; }
+        catch (e) { return { type: 'object', value: v }; }
+      }
+      // Quoted string → strip the quotes; otherwise treat the bare text as a string
+      if ((v[0] === '"' && v[v.length - 1] === '"') ||
+          (v[0] === "'" && v[v.length - 1] === "'")) {
+        return { type: 'string', value: v.slice(1, -1) };
+      }
+      return { type: 'string', value: v };
+    }
+
+    // Parse SET lines from a chunk of text → Map(name -> {name, type, value}). Last wins.
+    function parseSetMap(content) {
+      const map = new Map();
+      (content || '').split('\n').forEach(line => {
+        const m = line.match(SET_RE);
+        if (!m) return;
+        map.set(m[1], { name: m[1], ...inferType(m[2]) });
+      });
+      return map;
+    }
+
+    // ---- Evaluate a SET value at run time ----
+    // Literals parse to their JS value; expressions (screen/ai/api) resolve to mock results.
+    function setValueOf(info) {
+      if (info.expr) return evalExpr(info.expr, info.name);
+      if (info.type === 'object' || info.type === 'array') {
+        try { return JSON.parse(info.value); } catch (e) { return info.value; }
+      }
+      if (info.type === 'null') return null;
+      if (info.type === 'number') return Number(info.value);
+      if (info.type === 'boolean') return info.value === 'true';
+      return info.value;
+    }
+    function evalExpr(expr, name) {
+      if (expr.kind === 'screen') return mockScreen(name);
+      if (expr.kind === 'ai') return mockAi(expr.hint, name);
+      if (expr.kind === 'api') return extractFromApi(expr.api, expr.path);
+      return undefined;
+    }
+    function mockScreen(name) { return 'scr_' + (name || 'value'); }
+    function mockAi(hint, name) {
+      const h = ((hint || '') + ' ' + (name || '')).toLowerCase();
+      const n = Math.floor(Math.random() * 9000) + 1000;
+      if (/email/.test(h)) return 'ai.user' + n + '@example.com';
+      if (/(otp|code|pin)/.test(h)) return String(Math.floor(Math.random() * 900000) + 100000);
+      if (/phone|mobile/.test(h)) return '+9198' + (Math.floor(Math.random() * 90000000) + 10000000);
+      if (/name/.test(h)) return 'Test User ' + n;
+      return 'ai_' + (name || 'value') + '_' + n;
+    }
+    // Pull a value out of a dummy API response. The argument is a natural-language hint
+    // ("the status code", "token") or a dotted JSON path ("data.token").
+    function extractFromApi(apiName, arg) {
+      const api = DUMMY_APIS[apiName];
+      if (!api) return undefined;
+      const a = (arg || '').toLowerCase();
+      if (/status(\s*code)?/.test(a)) return api.status;
+      const resp = api.response;
+      if (/^[\w$]+(\.[\w$]+)*$/.test(arg || '')) {
+        const p = getPath(resp, arg.split('.'));
+        if (p !== undefined) return p;
+      }
+      for (const k of Object.keys(resp)) {
+        if (a.includes(k.toLowerCase()) || a.includes(k.replace(/_/g, ' '))) return resp[k];
+      }
+      return undefined;
+    }
+    // API names invoked earlier in the editor (lines `API <name>` above `beforePos`).
+    function earlierApiNames(beforePos) {
+      const before = input.value.slice(0, beforePos);
+      const names = [], seen = new Set();
+      before.split('\n').forEach(line => {
+        const m = line.match(/^\s*API\s+([A-Za-z_$][\w$]*)/);
+        if (m && !seen.has(m[1])) { seen.add(m[1]); names.push(m[1]); }
+      });
+      // Fall back to all available dummy APIs so the dropdown is never empty in a fresh test.
+      if (!names.length) return Object.keys(DUMMY_APIS);
+      return names;
+    }
+
+    // Aggregate variables from ALL saved project files + the live editor.
+    // The open file is represented by the editor (live); other files contribute their saved SETs.
+    let variablesCache = [];
+    function aggregateVariables() {
+      const map = new Map();
+      const files = loadStore().slice().sort((a, b) => a.updatedAt - b.updatedAt); // oldest first
+      const currentName = currentId
+        ? ((files.find(f => f.id === currentId) || {}).name || 'Current file')
+        : null;
+      files.forEach(f => {
+        if (f.id === currentId) return;   // live editor stands in for the open file
+        parseSetMap(f.content).forEach((info, name) => map.set(name, { ...info, source: f.name }));
+      });
+      // The editor wins over saved copies
+      parseSetMap(input.value).forEach((info, name) =>
+        map.set(name, { ...info, source: currentName ? currentName + ' (editing)' : 'Current editor' }));
+      return Array.from(map.values());
+    }
+    function rebuildVariables() { variablesCache = aggregateVariables(); }
+
+    // Returns the cached aggregated variable list (used by table, autocomplete, highlight, YAML gen).
+    function parseVariables() { return variablesCache; }
+
+    function renderVariables() {
+      const vars = parseVariables();
+      // In V3 the page subheading describes the dataset repository, so don't overwrite it.
+      if (window.APP_VERSION !== 3) {
+        varCount.textContent = vars.length
+          ? vars.length + (vars.length === 1 ? ' variable defined' : ' variables defined')
+          : 'Variables created with the SET command';
+      }
+      varTable.innerHTML = '';
+
+      if (!vars.length) {
+        const empty = document.createElement('div');
+        empty.className = 'var-empty';
+        empty.innerHTML = 'No variables yet. In the editor, write <code>SET city = Mumbai</code> to create one.';
+        varTable.appendChild(empty);
+        return;
+      }
+
+      const header = document.createElement('div');
+      header.className = 'var-row head';
+      header.innerHTML = '<span>Name</span><span>Type</span><span>Value</span><span>Source</span>';
+      varTable.appendChild(header);
+
+      vars.forEach(v => {
+        const row = document.createElement('div');
+        row.className = 'var-row';
+        row.innerHTML =
+          '<span class="var-name"></span>' +
+          '<span><span class="type-badge type-' + v.type + '"></span></span>' +
+          '<span class="var-value"></span>' +
+          '<span class="var-source"></span>';
+        row.querySelector('.var-name').textContent = v.name;
+        row.querySelector('.type-badge').textContent = v.type;
+        row.querySelector('.var-value').textContent = v.type === 'null' ? 'null' : v.value;
+        row.querySelector('.var-source').textContent = v.source || '—';
+        varTable.appendChild(row);
+      });
+    }
+
+    /* ---------- Test Data: YAML data files ---------- */
+    const DATA_KEY = 'drizz.datafiles';
+    const dataFileList = document.getElementById('dataFileList');
+    const dataFileInput = document.getElementById('dataFileInput');
+    const createMenu = document.getElementById('createMenu');
+    const dataModal = document.getElementById('dataModal');
+    const dataModalTitle = document.getElementById('dataModalTitle');
+    const dataModalText = document.getElementById('dataModalText');
+    let openDataId = null;
+
+    function loadData() {
+      try { return JSON.parse(localStorage.getItem(DATA_KEY)) || []; }
+      catch (e) { return []; }
+    }
+    function saveData(files) { localStorage.setItem(DATA_KEY, JSON.stringify(files)); }
+
+    /* ========== V3 Datasets (named tables) ========== */
+    const DATASET_KEY = 'drizz.datasets';
+    function loadDatasets() {
+      try { return JSON.parse(localStorage.getItem(DATASET_KEY)) || []; }
+      catch (e) { return []; }
+    }
+    function saveDatasets(d) { localStorage.setItem(DATASET_KEY, JSON.stringify(d)); }
+
+    let dsEditing = null;   // { id, yaml } being edited (YAML is the source of truth)
+
+    const YAML_TEMPLATE =
+      '# Test data — one variable per line.\n' +
+      '# Types: string, number, boolean, list, object (max 2 levels deep).\n' +
+      'city: Mumbai\n' +
+      'count: 1\n' +
+      'active: true\n' +
+      'tags:\n' +
+      '  - andheri\n' +
+      '  - bandra\n';
+
+    function newDataset(presetCols) {
+      let yaml = YAML_TEMPLATE;
+      if (presetCols && presetCols.length) {
+        // seed the referenced attributes as blank keys (dotted refs → nested objects)
+        const tree = {};
+        presetCols.forEach(c => {
+          const segs = c.split('.');
+          let cur = tree;
+          segs.forEach((s, i) => { if (i === segs.length - 1) cur[s] = ''; else cur = (cur[s] = cur[s] || {}); });
+        });
+        yaml = '# Fill in the values referenced by your test.\n' + objToYaml(tree, 0);
+      }
+      dsEditing = { id: 'ds_' + Date.now(), yaml };
+      openDatasetEditor('');
+    }
+    function editDataset(id) {
+      const ds = loadDatasets().find(d => d.id === id);
+      if (!ds) return;
+      dsEditing = { id: ds.id, yaml: ds.yaml != null ? ds.yaml : modelToYaml(ds) };
+      openDatasetEditor(ds.name);
+    }
+    function openDatasetEditor(name) {
+      const nameInput = document.getElementById('datasetName');
+      nameInput.value = name || '';
+      document.getElementById('dsPaneYaml').value = dsEditing.yaml;
+      document.getElementById('dsFind').classList.remove('open');   // reset find bar
+      document.getElementById('dsFindInput').value = '';
+      dsFind = { term: '', matches: [], idx: 0 };
+      dsRender();
+      document.getElementById('datasetModal').classList.add('open');
+      // Jump to the first empty variable so the user lands on the data that needs filling.
+      const empties = dsEmptyLineIndices(dsEditing.yaml.split('\n'));
+      const ta = document.getElementById('dsPaneYaml');
+      if (empties.length) {
+        const lh = parseFloat(getComputedStyle(ta).lineHeight) || 24;
+        ta.scrollTop = Math.max(0, empties[0] * lh - 48);
+        dsSyncScroll();
+      }
+      nameInput.focus();
+    }
+    function closeDatasetModal() { document.getElementById('datasetModal').classList.remove('open'); }
+
+    // A YAML line declares a variable with NO value (→ shown red).
+    // `key:` / `key: ` / `key: ""` count as empty, UNLESS deeper-indented children follow (an object/array).
+    function dsLineIsEmpty(lines, i) {
+      const line = lines[i];
+      const m = line.match(/^(\s*)(?:-\s+)?([^:#\s][^:]*):(.*)$/);
+      if (!m) return false;
+      const val = m[3].trim();
+      if (val !== '' && val !== '""' && val !== "''") return false;
+      if (val === '') {
+        const indent = m[1].length;
+        for (let j = i + 1; j < lines.length; j++) {
+          const t = lines[j];
+          if (!t.trim() || t.trim().startsWith('#')) continue;
+          return t.match(/^ */)[0].length <= indent;   // child deeper → has data
+        }
+      }
+      return true;
+    }
+    function dsEmptyLineIndices(lines) {
+      const out = [];
+      for (let i = 0; i < lines.length; i++) if (dsLineIsEmpty(lines, i)) out.push(i);
+      return out;
+    }
+    // Re-paint the highlight overlay + gutter (empty-variable lines red, find hits yellow).
+    function dsRender() {
+      const ta = document.getElementById('dsPaneYaml');
+      const hl = document.getElementById('dsHighlight');
+      const gutter = document.getElementById('dsGutter');
+      const lines = ta.value.split('\n');
+      let html = '', nums = '';
+      lines.forEach((line, i) => {
+        const empty = dsLineIsEmpty(lines, i);
+        html += '<span class="dl' + (empty ? ' ds-empty-line' : '') + '">' + dsFindHighlight(escapeHtml(line) || ' ') + '</span>';
+        nums += '<span class="' + (empty ? 'gl-empty' : '') + '">' + (i + 1) + '</span>\n';
+      });
+      hl.innerHTML = html;
+      gutter.innerHTML = nums;
+      dsSyncScroll();
+    }
+    function dsSyncScroll() {
+      const ta = document.getElementById('dsPaneYaml');
+      document.getElementById('dsHighlight').scrollTop = ta.scrollTop;
+      document.getElementById('dsHighlight').scrollLeft = ta.scrollLeft;
+      document.getElementById('dsGutter').scrollTop = ta.scrollTop;
+    }
+
+    /* ----- In-editor find (Cmd/Ctrl+F) ----- */
+    let dsFind = { term: '', matches: [], idx: 0 };
+    function escapeReg(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    function dsFindHighlight(escaped) {
+      if (!dsFind.term) return escaped;
+      const re = new RegExp(escapeReg(escapeHtml(dsFind.term)), 'gi');
+      return escaped.replace(re, m => '<mark class="ds-find-hit">' + m + '</mark>');
+    }
+    function dsFindOpen() {
+      const bar = document.getElementById('dsFind');
+      bar.classList.add('open');
+      const inp = document.getElementById('dsFindInput');
+      const ta = document.getElementById('dsPaneYaml');
+      const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
+      if (sel && !sel.includes('\n')) inp.value = sel;
+      dsFindUpdate();
+      inp.focus(); inp.select();
+    }
+    function dsFindClose() {
+      document.getElementById('dsFind').classList.remove('open');
+      dsFind = { term: '', matches: [], idx: 0 };
+      dsRender();
+      document.getElementById('dsPaneYaml').focus();
+    }
+    function dsFindUpdate() {
+      const ta = document.getElementById('dsPaneYaml');
+      dsFind.term = document.getElementById('dsFindInput').value;
+      dsFind.matches = [];
+      if (dsFind.term) {
+        const v = ta.value.toLowerCase(), t = dsFind.term.toLowerCase();
+        let i = 0; while ((i = v.indexOf(t, i)) >= 0) { dsFind.matches.push(i); i += t.length || 1; }
+      }
+      dsFind.idx = 0;
+      dsRender();
+      if (dsFind.matches.length) dsFindScrollTo(0); else dsFindCount();
+    }
+    function dsFindGo(delta) {
+      if (!dsFind.matches.length) return;
+      dsFind.idx = (dsFind.idx + delta + dsFind.matches.length) % dsFind.matches.length;
+      dsFindScrollTo(dsFind.idx);
+    }
+    function dsFindScrollTo(idx) {
+      const ta = document.getElementById('dsPaneYaml');
+      const off = dsFind.matches[idx];
+      ta.focus();
+      ta.setSelectionRange(off, off + dsFind.term.length);
+      const line = ta.value.slice(0, off).split('\n').length - 1;
+      const lh = parseFloat(getComputedStyle(ta).lineHeight) || 24;
+      ta.scrollTop = Math.max(0, line * lh - ta.clientHeight / 2);
+      dsSyncScroll();
+      document.getElementById('dsFindInput').focus();
+      dsFindCount();
+    }
+    function dsFindCount() {
+      const n = dsFind.matches.length;
+      document.getElementById('dsFindCount').textContent = (n ? dsFind.idx + 1 : 0) + '/' + n;
+    }
+    function dsFindKey(e) {
+      if (e.key === 'Enter') { e.preventDefault(); dsFindGo(e.shiftKey ? -1 : 1); }
+      else if (e.key === 'Escape') { e.preventDefault(); dsFindClose(); }
+    }
+    // Cmd/Ctrl+F opens find only while the YAML editor is open.
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'f' || e.key === 'F') &&
+          document.getElementById('datasetModal').classList.contains('open')) {
+        e.preventDefault(); dsFindOpen();
+      }
+    });
+
+    /* ----- YAML <-> {columns, rows} model (model kept for the resolve/plan engine) ----- */
+    function modelToRecords(model) {
+      return model.rows.map(r => {
+        const o = {};
+        model.columns.forEach((c, ci) => { o[c] = r[ci] != null ? r[ci] : ''; });
+        return o;
+      });
+    }
+    function recordsToModel(records) {
+      const columns = [], seen = new Set();
+      records.forEach(rec => Object.keys(rec).forEach(k => { if (!seen.has(k)) { seen.add(k); columns.push(k); } }));
+      if (!columns.length) columns.push('city');
+      const rows = records.map(rec => columns.map(c => {
+        const v = rec[c];
+        if (v == null) return '';
+        return (typeof v === 'object') ? JSON.stringify(v) : String(v);
+      }));
+      return { columns, rows: rows.length ? rows : [columns.map(() => '')] };
+    }
+    // Legacy datasets (pre-YAML) had only {columns, rows}; render them back to YAML once.
+    function modelToYaml(ds) {
+      const recs = modelToRecords(ds);
+      const objs = recs.map(rec => {
+        const o = {};
+        Object.keys(rec).forEach(k => { o[k] = tryParseJSON(rec[k]); });
+        return o;
+      });
+      if (objs.length === 1) return objToYaml(objs[0], 0);
+      // multiple records → object-of-objects keyed by the row's `key` (or row index)
+      const wrapper = {};
+      objs.forEach((o, i) => { const k = o.key != null && o.key !== '' ? o.key : ('row' + i); const c = Object.assign({}, o); delete c.key; wrapper[k] = c; });
+      return objToYaml(wrapper, 0);
+    }
+    // Serialise a plain object/array to YAML text.
+    function objToYaml(v, indent) {
+      const pad = '  '.repeat(indent);
+      if (Array.isArray(v)) {
+        if (!v.length) return pad + '[]\n';
+        return v.map(item => (item !== null && typeof item === 'object')
+          ? pad + '-\n' + objToYaml(item, indent + 1)
+          : pad + '- ' + yamlEmit(item) + '\n').join('');
+      }
+      if (v !== null && typeof v === 'object') {
+        const keys = Object.keys(v);
+        if (!keys.length) return pad + '{}\n';
+        return keys.map(k => {
+          const val = v[k];
+          if (val !== null && typeof val === 'object') return pad + k + ':\n' + objToYaml(val, indent + 1);
+          return pad + k + ': ' + yamlEmit(val) + '\n';
+        }).join('');
+      }
+      return pad + yamlEmit(v) + '\n';
+    }
+    function yamlEmit(v) {
+      if (v === null) return 'null';
+      if (v === '') return '';
+      if (typeof v === 'object') return JSON.stringify(v);
+      return String(v);
+    }
+
+    // Parse YAML → model. A top-level object-of-objects becomes one record per key
+    // (key stored in a `key` column), matching the resolve/plan record model.
+    function yamlToModel(text) {
+      const data = parseYaml(text);
+      let recs;
+      if (Array.isArray(data)) recs = data;
+      else if (data && typeof data === 'object') {
+        const vals = Object.values(data);
+        // 2+ top-level keys that are ALL objects → object-of-objects = one record per key.
+        const isDictOfObjects = vals.length >= 2 && vals.every(v => v && typeof v === 'object' && !Array.isArray(v));
+        recs = isDictOfObjects ? Object.keys(data).map(k => Object.assign({ key: k }, data[k])) : [data];
+      } else recs = [{}];
+      return recordsToModel(recs);
+    }
+
+    // Depth of nested plain objects in a value (arrays are transparent). Scalars/lists = 0.
+    function objectDepth(v) {
+      if (Array.isArray(v)) return v.reduce((m, x) => Math.max(m, objectDepth(x)), 0);
+      if (v !== null && typeof v === 'object') return 1 + Object.values(v).reduce((m, x) => Math.max(m, objectDepth(x)), 0);
+      return 0;
+    }
+
+    function dsImportFile() { document.getElementById('dsFileInput').click(); }
+    document.getElementById('dsFileInput').addEventListener('change', function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result || '');
+        try { parseYaml(text); } catch (e) { appAlert('Could not read file', file.name + ': ' + e.message); return; }
+        document.getElementById('dsPaneYaml').value = text;
+        dsEditing.yaml = text;
+        if (!document.getElementById('datasetName').value.trim()) {
+          const base = file.name.replace(/\.(ya?ml)$/i, '').replace(/[^A-Za-z0-9_$]/g, '_');
+          document.getElementById('datasetName').value = base;
+        }
+        dsRender();
+      };
+      reader.readAsText(file);
+      this.value = '';
+    });
+
+    function saveDataset() {
+      const name = document.getElementById('datasetName').value.trim();
+      if (!name) { appAlert('Name required', 'Give the file a name (e.g. login_city).'); return; }
+      if (!/^[A-Za-z_$][\w$]*$/.test(name)) { appAlert('Invalid name', 'Name must be a valid identifier — letters, digits, and underscores only.'); return; }
+      const all = loadDatasets();
+      // No duplicate file names (case-insensitive), ignoring the file being edited.
+      if (all.some(d => d.id !== dsEditing.id && d.name.toLowerCase() === name.toLowerCase())) {
+        appAlert('Duplicate file name', 'A dataset named “' + name + '.yaml” already exists. Choose a different name.'); return;
+      }
+      const yaml = document.getElementById('dsPaneYaml').value;
+      let model;
+      try { model = yamlToModel(yaml); }
+      catch (e) { appAlert('Invalid YAML', 'Could not parse the file: ' + e.message); return; }
+      // Enforce 2-level object nesting maximum across every field of every record.
+      for (const rec of modelToRecords(model)) {
+        for (const col of model.columns) {
+          if (col === 'key') continue;
+          if (objectDepth(tryParseJSON(rec[col])) > 2) {
+            appAlert('Too deeply nested', '“' + col + '” nests objects more than 2 levels deep. Flatten it to at most 2 levels.');
+            return;
+          }
+        }
+      }
+      const idx = all.findIndex(d => d.id === dsEditing.id);
+      const prev = idx >= 0 ? all[idx] : null;
+      const rec = { id: dsEditing.id, name, columns: model.columns, rows: model.rows, yaml,
+                    createdBy: (prev && prev.createdBy) || USER_EMAIL,
+                    createdAt: (prev && prev.createdAt) || Date.now(), updatedAt: Date.now() };
+      if (idx >= 0) all[idx] = rec; else all.push(rec);
+      saveDatasets(all);
+      closeDatasetModal();
+      renderDatasets();
+    }
+    function deleteDataset(id) {
+      const ds = loadDatasets().find(d => d.id === id);
+      if (!ds) return;
+      appConfirm({
+        title: 'Delete dataset',
+        message: 'Delete “' + ds.name + '.yaml”? This cannot be undone.',
+        confirmLabel: 'Delete'
+      }, () => {
+        saveDatasets(loadDatasets().filter(d => d.id !== id));
+        renderDatasets();
+      });
+    }
+
+    // Open the OS file picker and load the chosen YAML straight into the editor.
+    function importDatasetToEditor() { document.getElementById('datasetImportInput').click(); }
+    document.getElementById('datasetImportInput').addEventListener('change', function () {
+      const file = this.files && this.files[0];
+      this.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result || '');
+        try { parseYaml(text); } catch (e) { appAlert('Could not read file', file.name + ': ' + e.message); return; }
+        const base = file.name.replace(/\.(ya?ml)$/i, '').replace(/[^A-Za-z0-9_$]/g, '_');
+        dsEditing = { id: 'ds_' + Date.now(), yaml: text };
+        openDatasetEditor(base);
+      };
+      reader.readAsText(file);
+    });
+
+    let dsSearch = '';
+    let dsPage = 0;
+    const DS_PAGE_SIZE = 25;   // 5 × 5 cards per page
+
+    function onDatasetSearch() {
+      dsSearch = document.getElementById('datasetSearch').value.trim().toLowerCase();
+      dsPage = 0;
+      renderDatasets();
+    }
+    function datasetMatches(ds, q) {
+      if (!q) return true;
+      if (ds.name.toLowerCase().includes(q)) return true;
+      return ds.columns.some(c => c !== 'key' && c.toLowerCase().includes(q));
+    }
+    // "N datasets · M variables" (distinct variable names). Reflects the search when active.
+    function countVars(list) {
+      const s = new Set();
+      list.forEach(ds => ds.columns.forEach(c => { if (c !== 'key') s.add(c); }));
+      return s.size;
+    }
+    function renderDatasetStats(all, items) {
+      const el = document.getElementById('datasetStats');
+      if (!el) return;
+      const fmt = (n, w) => '<b>' + n + '</b> ' + w + (n === 1 ? '' : 's');
+      if (dsSearch) {
+        el.innerHTML = 'Showing ' + fmt(items.length, 'dataset') + ' · ' + fmt(countVars(items), 'variable') +
+          ' matching “' + escapeHtml(dsSearch) + '” of ' + all.length + ' datasets';
+      } else {
+        el.innerHTML = fmt(all.length, 'dataset') + ' · ' + fmt(countVars(all), 'variable');
+      }
+    }
+    function renderDatasets() {
+      const list = document.getElementById('datasetList');
+      const pager = document.getElementById('datasetPager');
+      list.innerHTML = ''; if (pager) pager.innerHTML = '';
+
+      const all = loadDatasets().sort((a, b) => b.updatedAt - a.updatedAt);
+      const items = all.filter(ds => datasetMatches(ds, dsSearch));
+      renderDatasetStats(all, items);
+
+      if (!all.length) {
+        list.innerHTML = '<div class="projects-empty"><div class="big">' + svgIcon('database') +
+          '</div><div class="sub">No datasets yet. Create a YAML file or upload one.</div></div>';
+        return;
+      }
+      if (!items.length) {
+        list.innerHTML = '<div class="projects-empty"><div class="big">' + svgIcon('search') +
+          '</div><div class="sub">No datasets match “' + escapeHtml(dsSearch) + '”.</div></div>';
+        return;
+      }
+
+      const pages = Math.ceil(items.length / DS_PAGE_SIZE);
+      if (dsPage >= pages) dsPage = pages - 1;
+      const start = dsPage * DS_PAGE_SIZE;
+      items.slice(start, start + DS_PAGE_SIZE).forEach(ds => list.appendChild(datasetCard(ds)));
+      renderDatasetPager(pages, items.length);
+    }
+    function datasetCard(ds) {
+      const vars = ds.columns.filter(c => c !== 'key');
+      const empty = datasetEmptyVars(ds);
+      const card = document.createElement('div');
+      card.className = 'ds-card';
+      card.onclick = () => editDataset(ds.id);
+      card.innerHTML =
+        '<div class="ds-card-head">' +
+          '<div class="ds-card-icon">' + svgIcon('database') + '</div>' +
+          '<div class="ds-card-name"></div>' +
+        '</div>' +
+        '<div class="ds-card-meta">' +
+          '<span class="ds-count"></span>' +
+          (empty.length ? '<span class="ds-dot" title=""></span>' : '') +
+        '</div>' +
+        '<div class="ds-card-foot">' +
+          '<span class="ds-card-by"></span>' +
+          '<button class="ds-card-del" title="Delete">' + svgIcon('trash') + '</button>' +
+        '</div>';
+      card.querySelector('.ds-card-name').textContent = ds.name;
+      card.querySelector('.ds-card-name').title = ds.name;
+      card.querySelector('.ds-count').textContent =
+        vars.length + (vars.length === 1 ? ' variable' : ' variables');
+      if (empty.length) card.querySelector('.ds-dot').title =
+        empty.length + (empty.length === 1 ? ' variable has' : ' variables have') + ' no data: ' + empty.join(', ');
+      card.querySelector('.ds-card-by').textContent = ds.createdBy || USER_EMAIL;
+      card.querySelector('.ds-card-del').onclick = (e) => { e.stopPropagation(); deleteDataset(ds.id); };
+      return card;
+    }
+    function renderDatasetPager(pages, total) {
+      const pager = document.getElementById('datasetPager');
+      if (!pager || pages <= 1) return;
+      const btn = (html, opts) => {
+        const b = document.createElement('button');
+        b.innerHTML = html;
+        if (opts && opts.cls) b.className = opts.cls;
+        if (opts && opts.disabled) b.disabled = true;
+        if (opts && opts.onClick) b.onclick = opts.onClick;
+        return b;
+      };
+      // Left: page count. Right: page selector.
+      const info = document.createElement('span');
+      info.className = 'ds-pager-count';
+      info.textContent = 'Page ' + (dsPage + 1) + ' of ' + pages;
+      pager.appendChild(info);
+
+      const sel = document.createElement('div');
+      sel.className = 'ds-pager-sel';
+      sel.appendChild(btn(svgIcon('chevron-left'), { disabled: dsPage === 0, onClick: () => { dsPage--; renderDatasets(); } }));
+      for (let p = 0; p < pages; p++) {
+        sel.appendChild(btn(String(p + 1), { cls: p === dsPage ? 'active' : '', onClick: () => { dsPage = p; renderDatasets(); } }));
+      }
+      sel.appendChild(btn(svgIcon('chevron-right'), { disabled: dsPage >= pages - 1, onClick: () => { dsPage++; renderDatasets(); } }));
+      pager.appendChild(sel);
+    }
+    // Variables (columns) that have no resolved value in ANY record of the dataset.
+    function datasetEmptyVars(ds) {
+      const recs = datasetRichRecords(ds);
+      return ds.columns.filter(c => c !== 'key' && !recs.some(rec => isResolved(rec[c])));
+    }
+
+    /* ========== Test Plans ========== */
+    const planSelected = new Set();   // selected test-case ids
+
+    // Referenced {{refs}} in arbitrary content (plain attrs only in V3).
+    function refsInContent(content) {
+      const refs = [], seen = new Set();
+      (content || '').split('\n').forEach(line => {
+        if (!line.trim() || line.trim().startsWith('#')) return;
+        let m; REF_RE.lastIndex = 0;
+        while ((m = REF_RE.exec(line))) {
+          const r = m[1];
+          if (!seen.has(r)) { seen.add(r); refs.push(r); }
+        }
+      });
+      return refs;
+    }
+
+    function selectedCases() {
+      return loadStore().filter(c => planSelected.has(c.id));
+    }
+
+    // Union of variables across selected cases, split into locally-SET vs needs-resolving.
+    function planVariables() {
+      const all = new Set(), setSomewhere = new Set(), need = [];
+      const cases = selectedCases();
+      cases.forEach(c => {
+        const setMap = parseSetMap(c.content);
+        refsInContent(c.content).forEach(r => {
+          all.add(r);
+          if (setMap.has(r)) setSomewhere.add(r);
+        });
+      });
+      // A variable needs resolving if at least one selected case references it WITHOUT setting it.
+      cases.forEach(c => {
+        const setMap = parseSetMap(c.content);
+        refsInContent(c.content).forEach(r => {
+          if (!setMap.has(r) && need.indexOf(r) < 0) need.push(r);
+        });
+      });
+      return { all: Array.from(all), need, setSomewhere };
+    }
+
+    function renderPlanBuilder() {
+      const list = document.getElementById('planCases');
+      const cases = loadStore().sort((a, b) => b.updatedAt - a.updatedAt);
+      list.innerHTML = '';
+      if (!cases.length) {
+        list.innerHTML = '<div class="var-empty">No saved test cases. Create and save one in the editor first.</div>';
+      } else {
+        cases.forEach(c => {
+          const refs = refsInContent(c.content);
+          const row = document.createElement('label');
+          row.className = 'plan-case';
+          row.innerHTML = '<input type="checkbox" /><div class="datafile-info">' +
+            '<div class="pc-name"></div><div class="pc-sub"></div></div>';
+          const cb = row.querySelector('input');
+          cb.checked = planSelected.has(c.id);
+          cb.onchange = () => { cb.checked ? planSelected.add(c.id) : planSelected.delete(c.id); renderPlanVars(); };
+          row.querySelector('.pc-name').textContent = c.name;
+          row.querySelector('.pc-sub').textContent =
+            (refs.length ? refs.join(', ') : 'no variables');
+          list.appendChild(row);
+        });
+      }
+      renderPlanVars();
+    }
+
+    function renderPlanVars() {
+      const table = document.getElementById('planVarTable');
+      const { all, need } = planVariables();
+      table.innerHTML = '';
+      if (!all.length) {
+        table.innerHTML = '<div class="var-empty">Select test cases to see their variables.</div>';
+        return;
+      }
+      all.forEach(v => {
+        const span = document.createElement('span');
+        span.className = 'plan-var-pill' + (need.indexOf(v) < 0 ? ' set' : '');
+        span.textContent = v + (need.indexOf(v) < 0 ? ' ✓' : '');
+        table.appendChild(span);
+      });
+      renderPlanLoop();
+    }
+
+    /* ----- Test Plan: loop over datasets (cartesian product) ----- */
+    const planLoopRoots = new Set();
+    const loopTouched = new Set();
+    let loopCtx = null;
+
+    // Dataset names referenced as {{name.path}} across the selected cases.
+    function planRecordRoots() {
+      const roots = [], seen = new Set();
+      selectedCases().forEach(c => refsInContent(c.content).forEach(r => {
+        if (r.indexOf('.') < 0) return;
+        const root = r.split('.')[0];
+        if (!seen.has(root) && loadDatasets().some(d => d.name === root)) { seen.add(root); roots.push(root); }
+      }));
+      return roots;
+    }
+    function cartesian(lists) {
+      return lists.reduce((acc, list) => acc.flatMap(a => list.map(x => a.concat([x]))), [[]]);
+    }
+    function comboKey(rec) { return rec.key !== undefined ? String(rec.key) : displayVal(rec); }
+
+    // Distinct values a plain ref can take, from the first dataset that provides it (deep).
+    function valueAxisInfo(ref) {
+      for (const ds of loadDatasets()) {
+        const vals = datasetRichRecords(ds).map(rec => deepGetPath(rec, ref)).filter(v => v !== undefined);
+        if (vals.length) {
+          const seen = new Set(), out = [];
+          vals.forEach(v => { const k = displayVal(v); if (!seen.has(k)) { seen.add(k); out.push(v); } });
+          return { dsName: ds.name, values: out };
+        }
+      }
+      return { dsName: null, values: [] };
+    }
+
+    // All loopable axes for the selected cases: record datasets + plain-value datasets.
+    function planAxes() {
+      const axes = [], named = new Set();
+      planRecordRoots().forEach(root => {
+        const ds = loadDatasets().find(d => d.name === root);
+        axes.push({ name: root, kind: 'record', count: ds.rows.length });
+        named.add(root);
+      });
+      const vseen = new Set();
+      selectedCases().forEach(c => {
+        const setMap = parseSetMap(c.content);
+        refsInContent(c.content).forEach(r => {
+          if (r.indexOf('.') >= 0) return;            // plain values only
+          if (named.has(r) || vseen.has(r)) return;
+          if (setMap.has(r)) return;                  // SET in case
+          const info = valueAxisInfo(r);
+          if (info.values.length) { vseen.add(r); axes.push({ name: r, kind: 'value', count: info.values.length, values: info.values, dsName: info.dsName }); }
+        });
+      });
+      return axes;
+    }
+
+    function renderPlanLoop() {
+      const loopOn = document.getElementById('planLoop').checked;
+      document.getElementById('planLoopConfig').style.display = loopOn ? '' : 'none';
+      const axes = planAxes();
+      const names = axes.map(a => a.name);
+      Array.from(planLoopRoots).forEach(n => { if (names.indexOf(n) < 0) planLoopRoots.delete(n); });
+
+      const tables = document.getElementById('planLoopTables');
+      tables.innerHTML = '';
+      if (!axes.length) {
+        tables.innerHTML = '<div class="var-empty">No dataset-backed variables in the selected cases.</div>';
+        document.getElementById('planLoopCount').textContent = '';
+        return;
+      }
+      axes.forEach(a => {
+        if (!loopTouched.has(a.name)) { planLoopRoots.add(a.name); loopTouched.add(a.name); }  // default-on
+        const row = document.createElement('label');
+        row.className = 'plan-case';
+        row.style.border = 'none'; row.style.padding = '8px 0';
+        row.innerHTML = '<input type="checkbox" /><div><div class="pc-name"></div><div class="pc-sub"></div></div>';
+        const cb = row.querySelector('input');
+        cb.checked = planLoopRoots.has(a.name);
+        cb.onchange = () => { cb.checked ? planLoopRoots.add(a.name) : planLoopRoots.delete(a.name); updateLoopCount(); };
+        row.querySelector('.pc-name').textContent = a.name;
+        row.querySelector('.pc-sub').textContent = a.count + (a.kind === 'record' ? ' records' : ' values');
+        tables.appendChild(row);
+      });
+      updateLoopCount();
+    }
+    function updateLoopCount() {
+      const axes = planAxes().filter(a => planLoopRoots.has(a.name));
+      const total = axes.length ? axes.reduce((acc, a) => acc * a.count, 1) : 0;
+      document.getElementById('planLoopCount').textContent = axes.length
+        ? total + ' combination' + (total !== 1 ? 's' : '') + '  (' + axes.map(a => a.name + ': ' + a.count).join(' × ') + ')'
+        : 'Select at least one dataset to loop over.';
+    }
+
+    function runPlanFromBuilder() {
+      const cases = selectedCases();
+      if (!cases.length) { alert('Select at least one test case.'); return; }
+      if (document.getElementById('planLoop').checked) { startPlanLoop(cases); return; }
+      const { need } = planVariables();
+      if (need.length) openResolveModal(need, ov => runPlanExecute(cases, ov));
+      else runPlanExecute(cases, {});
+    }
+
+    const PLAN_ATTEMPT_CAP = 100;
+
+    function startPlanLoop(cases) {
+      const axes = planAxes().filter(a => planLoopRoots.has(a.name));
+      if (!axes.length) { alert('Select at least one dataset to loop over.'); return; }
+      const lists = axes.map(a => {
+        if (a.kind === 'record') {
+          const ds = loadDatasets().find(d => d.name === a.name);
+          return datasetRichRecords(ds).map(rec => ({ kind: 'record', name: a.name, record: rec, label: comboKey(rec) }));
+        }
+        return a.values.map(v => ({ kind: 'value', name: a.name, value: v, label: displayVal(v) }));
+      });
+      const combos = cartesian(lists);
+      const axisNames = new Set(axes.map(a => a.name));
+      const tied = [];
+      axes.forEach(a => { const dn = a.kind === 'record' ? a.name : a.dsName; if (dn && tied.indexOf(dn) < 0) tied.push(dn); });
+
+      // Refs still needing resolution: not provided by a loop axis and not SET in the case.
+      const need = [], seen = new Set();
+      cases.forEach(c => {
+        const setMap = parseSetMap(c.content);
+        refsInContent(c.content).forEach(r => {
+          const root = r.split('.')[0];
+          if (axisNames.has(r) || axisNames.has(root)) return;
+          if (setMap.has(r) || setMap.has(root)) return;
+          if (!seen.has(r)) { seen.add(r); need.push(r); }
+        });
+      });
+
+      const axisCols = axes.map(a => a.name);
+      if (need.length) openResolveModal(need, ov => buildAttempts(cases, combos, axisCols, ov, tied));
+      else buildAttempts(cases, combos, axisCols, {}, tied);
+    }
+
+    // Expand combinations × cases into concrete attempts (capped), each with baked-in values.
+    function buildAttempts(cases, combos, axisCols, overrides, tied) {
+      const overrideKeys = Object.keys(overrides);
+      const cols = axisCols.concat(overrideKeys);
+      const attempts = [];
+      for (const combo of combos) {
+        for (const c of cases) {
+          if (attempts.length >= PLAN_ATTEMPT_CAP) break;
+          const vars = {}, display = {};
+          combo.forEach(sel => { vars[sel.name] = sel.kind === 'record' ? sel.record : sel.value; display[sel.name] = sel.label; });
+          overrideKeys.forEach(k => { vars[k] = overrides[k]; display[k] = displayVal(overrides[k]); });
+          attempts.push({ caseId: c.id, caseName: c.name, vars, display });
+        }
+        if (attempts.length >= PLAN_ATTEMPT_CAP) break;
+      }
+      const totalRuns = combos.length * cases.length;
+      loopCtx = { attempts, cols, tied, truncated: totalRuns > PLAN_ATTEMPT_CAP, totalRuns };
+      renderAttempts();
+      document.getElementById('loopPreviewModal').classList.add('open');
+    }
+
+    function renderAttempts() {
+      const { attempts, cols, truncated, totalRuns } = loopCtx;
+      document.getElementById('loopPreviewHint').textContent = truncated
+        ? 'Showing first ' + attempts.length + ' of ' + totalRuns + ' attempts (capped at ' + PLAN_ATTEMPT_CAP + ').'
+        : attempts.length + ' attempt' + (attempts.length !== 1 ? 's' : '') + '.';
+      let html = '<table class="resolve-table"><thead><tr><th>#</th><th>Test case</th>' +
+        cols.map(c => '<th>' + escapeHtml(c) + '</th>').join('') + '</tr></thead><tbody>';
+      attempts.forEach((att, i) => {
+        html += '<tr><td class="rt-rownum">' + (i + 1) + '</td><td class="rt-cell-static">' + escapeHtml(att.caseName) + '</td>' +
+          cols.map(c => '<td class="rt-cell-static">' + escapeHtml(att.display[c] != null ? att.display[c] : '') + '</td>').join('') + '</tr>';
+      });
+      html += '</tbody></table>';
+      document.getElementById('loopPreviewBody').innerHTML = html;
+    }
+    function closeLoopPreview() { document.getElementById('loopPreviewModal').classList.remove('open'); }
+    function runLoopFromPreview() { closeLoopPreview(); if (loopCtx) runPlanLoopExecute(loopCtx.attempts); }
+
+    async function runPlanLoopExecute(attempts) {
+      if (isRunning) return;
+      switchView('editor');
+      isRunning = true; setRunning(true);
+      logsBody.innerHTML = '';
+      appendLog('Plan started · ' + attempts.length + ' attempt' + (attempts.length !== 1 ? 's' : ''), 'info');
+
+      let passed = 0, ran = 0;
+      for (let i = 0; i < attempts.length; i++) {
+        const att = attempts[i];
+        const c = loadStore().find(x => x.id === att.caseId);
+        const label = '— Attempt ' + (i + 1) + '/' + attempts.length + ' · <b>' + escapeHtml(att.caseName) + '</b> · ' +
+          Object.keys(att.display).map(k => escapeHtml(k) + '=' + escapeHtml(att.display[k])).join(', ');
+        if (!c) { appendLog(label, 'info'); appendLog('test case was deleted — skipped', 'error'); continue; }
+        appendLog(label, 'info');
+        ran++;
+
+        const steps = c.content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        const env = { vars: {}, datasets: loadDatasets(), rowMap: {} };
+        Object.assign(env.vars, att.vars);
+        parseSetMap(c.content).forEach(v => { env.vars[v.name] = setValueOf(v); });   // case's own SET wins
+        for (let s = 0; s < steps.length; s++) {
+          await sleep(450);
+          const resolved = resolveTokens(steps[s], env);
+          const cmd = resolved.split(/\s+/)[0];
+          const rest = resolved.slice(cmd.length);
+          appendLog('<span class="log-idx">' + (s + 1) + '</span><span class="log-cmd">' +
+            escapeHtml(cmd) + '</span>' + escapeHtml(rest) + '<span class="log-pass">✓</span>', 'step');
+        }
+        passed++;
+      }
+      await sleep(300);
+      appendLog('Plan finished · ' + passed + '/' + ran + ' attempts passed', 'success');
+      setRunning(false); isRunning = false;
+    }
+
+    /* ----- Saved test plans (persistent) ----- */
+    const PLAN_KEY = 'drizz.plans';
+    function loadPlans() { try { return JSON.parse(localStorage.getItem(PLAN_KEY)) || []; } catch (e) { return []; } }
+    function savePlans(p) { localStorage.setItem(PLAN_KEY, JSON.stringify(p)); }
+
+    function savePlanFromPreview() {
+      if (!loopCtx || !loopCtx.attempts.length) return;
+      let name = prompt('Save test plan as:', 'Plan ' + (loadPlans().length + 1));
+      if (name === null) return;
+      const plan = {
+        id: 'plan_' + Date.now(),
+        name: name.trim() || 'Untitled Plan',
+        tied: loopCtx.tied || [],          // dataset names this plan depends on
+        attempts: loopCtx.attempts,        // each { caseId, caseName, vars, display }
+        createdAt: Date.now()
+      };
+      const plans = loadPlans(); plans.push(plan); savePlans(plans);
+      closeLoopPreview();
+      renderSavedPlans();
+      alert('Saved “' + plan.name + '” with ' + plan.attempts.length + ' attempts.');
+    }
+
+    function planMissingDatasets(plan) {
+      const have = new Set(loadDatasets().map(d => d.name));
+      return (plan.tied || []).filter(n => !have.has(n));
+    }
+    function deletePlan(id) {
+      const p = loadPlans().find(x => x.id === id);
+      if (p && !confirm('Delete plan “' + p.name + '”?')) return;
+      savePlans(loadPlans().filter(x => x.id !== id));
+      renderSavedPlans();
+    }
+    function runSavedPlan(id) {
+      const p = loadPlans().find(x => x.id === id);
+      if (!p) return;
+      const missing = planMissingDatasets(p);
+      if (missing.length && !confirm('This plan uses deleted dataset(s): ' + missing.join(', ') + '.\nThe saved values are still baked in. Run anyway?')) return;
+      runPlanLoopExecute(p.attempts);
+    }
+    function renderSavedPlans() {
+      const list = document.getElementById('savedPlansList');
+      const plans = loadPlans().sort((a, b) => b.createdAt - a.createdAt);
+      list.innerHTML = '';
+      if (!plans.length) { list.innerHTML = '<div class="var-empty">No saved plans yet. Configure a loop and Save plan.</div>'; return; }
+      plans.forEach(p => {
+        const missing = planMissingDatasets(p);
+        const row = document.createElement('div');
+        row.className = 'datafile-row';
+        row.innerHTML =
+          '<div class="datafile-icon">' + (missing.length ? '<span class="plan-dot" title="' + escapeHtml('Missing dataset: ' + missing.join(', ')) + '"></span>' : svgIcon('clipboard-check')) + '</div>' +
+          '<div class="datafile-info"><div class="datafile-name"></div><div class="datafile-sub"></div></div>' +
+          '<div class="datafile-actions"><button class="icon-btn" data-act="run">Run</button>' +
+          '<button class="icon-btn danger" data-act="del">' + svgIcon('trash') + '</button></div>';
+        row.querySelector('.datafile-name').textContent = p.name;
+        row.querySelector('.datafile-sub').textContent = p.attempts.length + ' attempts · ' +
+          (p.tied || []).join(', ') + (missing.length ? '  — missing: ' + missing.join(', ') : '');
+        if (missing.length) row.querySelector('.datafile-sub').style.color = '#dc2626';
+        row.querySelector('[data-act="run"]').onclick = () => runSavedPlan(p.id);
+        row.querySelector('[data-act="del"]').onclick = () => deletePlan(p.id);
+        list.appendChild(row);
+      });
+    }
+
+    async function runPlanExecute(cases, overrides) {
+      if (isRunning) return;
+      switchView('editor');           // logs live in the editor view
+      isRunning = true;
+      setRunning(true);
+      logsBody.innerHTML = '';
+      appendLog('Plan started · ' + cases.length + ' test case' + (cases.length > 1 ? 's' : ''), 'info');
+
+      let passedCases = 0;
+      for (const c of cases) {
+        const steps = c.content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        appendLog('▸ <b>' + escapeHtml(c.name) + '</b> · ' + steps.length + ' step' + (steps.length > 1 ? 's' : ''), 'info');
+
+        // env: plan-resolved values as base, the case's own SET wins.
+        const env = { vars: {}, datasets: loadDatasets(), rowMap: {} };
+        Object.assign(env.vars, overrides);
+        parseSetMap(c.content).forEach(v => { env.vars[v.name] = setValueOf(v); });
+
+        const used = refsInContent(c.content);
+        if (used.length) {
+          appendLog('<span class="log-data">Data · ' + used.map(r =>
+            '<b>' + escapeHtml(r) + '</b>=' + escapeHtml(displayVal(env.vars[r]))).join('   ') + '</span>', '');
+        }
+
+        for (let i = 0; i < steps.length; i++) {
+          await sleep(1000);
+          const resolved = resolveTokens(steps[i], env);
+          const cmd = resolved.split(/\s+/)[0];
+          const rest = resolved.slice(cmd.length);
+          appendLog('<span class="log-idx">' + (i + 1) + '</span><span class="log-cmd">' +
+            escapeHtml(cmd) + '</span>' + escapeHtml(rest) + '<span class="log-pass">✓</span>', 'step');
+        }
+        appendLog('✓ ' + escapeHtml(c.name) + ' passed', 'success');
+        passedCases++;
+      }
+
+      await sleep(300);
+      appendLog('Plan finished · ' + passedCases + '/' + cases.length + ' test cases passed', 'success');
+      setRunning(false);
+      isRunning = false;
+    }
+
+    /* ========== Resolve-missing-data window (V3) ========== */
+    // Conflict-aware: for each variable we gather candidate values across every dataset.
+    //   exactly one distinct value  -> no conflict (✓), shown read-only with an Edit button
+    //   two or more distinct values  -> conflict (✕), user picks which test data to use
+    //   no value anywhere            -> manual entry needed
+    // Record roots (a set of fields from one dataset record) follow the same rule:
+    //   one record -> no conflict; many records -> conflict, pick the row.
+    let resolveOnRun = null;      // callback(overrides) invoked by Run
+    let resolveItems = [];        // [{type:'value'|'record', ...}]
+    let resolveSelected = 0;      // index into resolveItems shown in the detail pane
+
+    // All candidate values for a value-ref across datasets: [{dataset, value, key}]
+    function candidatesForAttr(attr) {
+      const out = [];
+      loadDatasets().forEach(ds => {
+        datasetRichRecords(ds).forEach(rec => {
+          const v = deepGetPath(rec, attr);
+          if (v !== undefined) out.push({ dataset: ds.name, value: v });
+        });
+      });
+      return out;
+    }
+    function valKey(v) { return (v !== null && typeof v === 'object') ? JSON.stringify(v) : String(v); }
+    // Distinct candidates by value (first occurrence wins, but keeps its source label).
+    function distinctCandidates(cands) {
+      const seen = new Set(), out = [];
+      cands.forEach(c => { const k = valKey(c.value); if (!seen.has(k)) { seen.add(k); out.push(c); } });
+      return out;
+    }
+
+    function openResolveModal(unresolved, onRun) {
+      resolveOnRun = onRun || (ov => runTest(null, null, ov));
+      resolveItems = [];
+
+      // Group @file.* refs by file → pick ONE record from that file so every @file.* follows.
+      const fileOrder = [], seenFile = new Set();
+      unresolved.forEach(r => {
+        if (r[0] === '@') {
+          const file = r.slice(1).split('.')[0];
+          if (!seenFile.has(file)) { seenFile.add(file); fileOrder.push(file); }
+        }
+      });
+      fileOrder.forEach(file => {
+        const ds = loadDatasets().find(d => d.name === file);
+        const records = ds ? datasetRichRecords(ds) : [];
+        const subs = unresolved
+          .filter(r => r[0] === '@' && r.slice(1).split('.')[0] === file)
+          .map(r => r.slice(1).split('.').slice(1).join('.'))
+          .filter(s => s.length);
+        const item = { type: 'record', root: '@' + file, ds, records, subs, chosen: null };
+        if (records.length === 1) item.chosen = 0;   // single record -> no conflict, auto-pick
+        resolveItems.push(item);
+      });
+
+      // Bare refs (SET locals not yet set) → type a value.
+      unresolved.filter(r => r[0] !== '@').forEach(attr => {
+        resolveItems.push({ type: 'value', attr, distinct: [], chosen: undefined });
+      });
+
+      // Open focused on the first unresolved variable (conflict/manual), else the first.
+      const firstUnresolved = resolveItems.findIndex(it => itemStatus(it) !== 'ok');
+      resolveSelected = firstUnresolved >= 0 ? firstUnresolved : 0;
+      renderResolve();
+      document.getElementById('resolveModal').classList.add('open');
+    }
+    function closeResolveModal() { document.getElementById('resolveModal').classList.remove('open'); }
+
+    // Status for an item: 'ok' (resolved, no conflict), 'conflict' (multiple, unpicked),
+    //                     'manual' (no candidates, needs typed value).
+    function recordItemStatus(it) {
+      if (it.chosen != null) return 'ok';
+      return it.records.length >= 2 ? 'conflict' : 'manual';
+    }
+    function valueItemStatus(it) {
+      if (it.chosen !== undefined) return 'ok';
+      if (it.distinct.length >= 2) return 'conflict';
+      return 'manual';   // 0 candidates
+    }
+    function itemStatus(it) { return it.type === 'record' ? recordItemStatus(it) : valueItemStatus(it); }
+    function unresolvedCount() { return resolveItems.filter(it => itemStatus(it) !== 'ok').length; }
+
+    function markEl(status) {
+      const m = document.createElement('span');
+      m.className = 'rv-mark ' + status;
+      m.textContent = status === 'ok' ? '✓' : '✕';
+      return m;
+    }
+
+    // Master–detail render: left rail of variables, right pane resolves the selected one.
+    function renderResolve() {
+      const list = document.getElementById('resolveList');
+      const detail = document.getElementById('resolveDetail');
+      list.innerHTML = '';
+
+      // Display order: unresolved first (stable), then resolved (stable).
+      const order = resolveItems.map((it, i) => i)
+        .sort((a, b) => (itemStatus(resolveItems[a]) === 'ok') - (itemStatus(resolveItems[b]) === 'ok'));
+
+      order.forEach(idx => {
+        const it = resolveItems[idx];
+        const li = document.createElement('button');
+        li.className = 'rv-li' + (idx === resolveSelected ? ' sel' : '');
+        li.appendChild(markEl(itemStatus(it)));
+        const name = document.createElement('span'); name.className = 'rv-name';
+        name.textContent = it.type === 'record' ? it.root : it.attr;
+        li.appendChild(name);
+        li.onclick = () => { resolveSelected = idx; renderResolve(); };
+        list.appendChild(li);
+      });
+
+      const sel = resolveItems[resolveSelected];
+      detail.innerHTML = '';
+      if (sel) detail.appendChild(sel.type === 'record' ? renderRecordDetail(sel) : renderValueDetail(sel));
+
+      // Footer status + Run gating.
+      const n = unresolvedCount();
+      const foot = document.getElementById('resolveFootStatus');
+      foot.classList.toggle('ready', n === 0);
+      foot.textContent = n === 0 ? 'Ready to run' : (n + (n === 1 ? ' conflict blocks this run' : ' conflicts block this run'));
+      document.getElementById('resolveRunBtn').disabled = n > 0;
+    }
+
+    function detailHead(title, desc) {
+      const wrap = document.createElement('div');
+      const t = document.createElement('div'); t.className = 'rv-d-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'rv-d-desc'; d.textContent = desc;
+      wrap.appendChild(t); wrap.appendChild(d);
+      return wrap;
+    }
+
+    function renderValueDetail(it) {
+      const status = valueItemStatus(it);
+      const desc = it.distinct.length >= 2
+        ? it.distinct.length + ' possible values across datasets. Pick which test data to use.'
+        : it.distinct.length === 1
+          ? 'One match found, no conflict. Edit below if you want a different value.'
+          : 'No dataset has this variable. Type a value to use.';
+      const el = detailHead(it.attr, desc);
+
+      if (it.distinct.length) {
+        const opts = document.createElement('div'); opts.className = 'rv-opts';
+        it.distinct.forEach(c => {
+          const b = document.createElement('button'); b.className = 'rv-opt';
+          if (it.chosen !== undefined && valKey(it.chosen) === valKey(c.value)) b.classList.add('sel');
+          b.innerHTML = escapeHtml(displayVal(c.value)) + '<span class="rv-opt-src">' + escapeHtml(c.dataset) + '</span>';
+          b.onclick = () => { it.chosen = c.value; renderResolve(); };
+          opts.appendChild(b);
+        });
+        el.appendChild(opts);
+      }
+      const man = document.createElement('div'); man.className = 'rv-manual';
+      const inp = document.createElement('input');
+      inp.placeholder = it.distinct.length ? 'Or type a value for ' + it.attr : 'Type a value for ' + it.attr;
+      if (it.chosen !== undefined && !it.distinct.some(c => valKey(c.value) === valKey(it.chosen))) inp.value = displayVal(it.chosen);
+      const apply = document.createElement('button'); apply.className = 'btn rv-edit'; apply.textContent = 'Set';
+      const setManual = () => { const v = inp.value.trim(); if (v !== '') { it.chosen = v; renderResolve(); } };
+      apply.onclick = setManual;
+      inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); setManual(); } };
+      man.appendChild(inp); man.appendChild(apply);
+      el.appendChild(man);
+      return el;
+    }
+
+    function renderRecordDetail(it) {
+      const records = it.records;
+      const hasKey = it.ds && it.ds.columns.indexOf('key') >= 0;
+      const desc = records.length >= 2
+        ? records.length + ' records in ' + it.root.slice(1) + '. Pick one — all of its fields are set.'
+        : 'One record in ' + it.root.slice(1) + '. Pick again below to change it.';
+      const el = detailHead(it.root, desc);
+
+      const table = document.createElement('table');
+      table.className = 'resolve-table';
+      let html = '<thead><tr><th></th>' + (hasKey ? '<th>key</th>' : '') +
+        it.subs.map(s => '<th>' + escapeHtml(it.root + '.' + s) + '</th>').join('') + '</tr></thead><tbody>';
+      records.forEach((rec, ri) => {
+        html += '<tr data-ri="' + ri + '"' + (it.chosen === ri ? ' class="picked"' : '') + '><td class="rt-rownum">' +
+          (it.chosen === ri ? '●' : '○') + '</td>';
+        if (hasKey) html += '<td class="rt-cell-static">' + escapeHtml(displayVal(rec.key)) + '</td>';
+        it.subs.forEach(s => { html += '<td class="rt-cell-static">' + escapeHtml(displayVal(getPath(rec, s.split('.')))) + '</td>'; });
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      table.innerHTML = html;
+      table.querySelectorAll('tbody tr').forEach(tr => {
+        tr.onclick = () => { it.chosen = +tr.dataset.ri; renderResolve(); };
+      });
+      el.appendChild(table);
+      return el;
+    }
+
+    // Treat each row as a rich record (JSON cells parsed), so we can match keys at any depth.
+    function tryParseJSON(s) {
+      if (typeof s !== 'string') return s;
+      const t = s.trim();
+      if (t && (t[0] === '{' || t[0] === '[')) { try { return JSON.parse(t); } catch (e) {} }
+      return s;
+    }
+    function datasetRichRecords(ds) {
+      return ds.rows.map(row => {
+        const o = {};
+        ds.columns.forEach((c, ci) => { o[c] = tryParseJSON(row[ci]); });
+        return o;
+      });
+    }
+    // First value found for `key` at any nesting level (objects or arrays).
+    function deepGet(obj, key) {
+      if (obj == null || typeof obj !== 'object') return undefined;
+      if (!Array.isArray(obj) && Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
+      for (const k in obj) {
+        const v = obj[k];
+        if (v && typeof v === 'object') { const f = deepGet(v, key); if (f !== undefined) return f; }
+      }
+      return undefined;
+    }
+    function datasetHasAttr(ds, attr) {
+      return datasetRichRecords(ds).some(rec => deepGetPath(rec, attr) !== undefined);
+    }
+
+    function resolveCreateDataset() {
+      const attrs = resolveItems.filter(it => it.type === 'value').map(it => it.attr);
+      closeResolveModal();
+      newDataset(attrs);   // pre-seed columns with the needed attributes
+    }
+
+    function resolveAndRun() {
+      const overrides = {};
+      const unresolved = [];
+      resolveItems.forEach(it => {
+        if (it.type === 'record') {
+          if (it.chosen == null) unresolved.push(it.root);
+          else overrides[it.root] = it.records[it.chosen];
+        } else {
+          if (it.chosen === undefined) unresolved.push(it.attr);
+          else overrides[it.attr] = it.chosen;
+        }
+      });
+      if (unresolved.length) { appAlert('Unresolved variables', 'Resolve every variable first: ' + unresolved.join(', ')); return; }
+      closeResolveModal();
+      (resolveOnRun || (ov => runTest(null, null, ov)))(overrides);
+    }
+
+    function ensureYamlName(name) {
+      name = (name || '').trim();
+      if (!name) name = 'data.yaml';
+      if (!/\.(ya?ml)$/i.test(name)) name += '.yaml';
+      return name;
+    }
+
+    // Build YAML from current variables, keys only, blank values.
+    // Build YAML lines for one key, scaffolding object/array structure with blank leaves.
+    function yamlLinesFor(key, value, indent) {
+      const pad = '  '.repeat(indent);
+      if (Array.isArray(value)) {
+        if (!value.length) return [pad + key + ': []'];
+        const out = [pad + key + ':'];
+        value.forEach(item => {
+          if (item && typeof item === 'object' && !Array.isArray(item)) {
+            const ks = Object.keys(item);
+            if (!ks.length) { out.push('  '.repeat(indent + 1) + '- {}'); return; }
+            ks.forEach((k, i) => out.push(
+              i === 0 ? '  '.repeat(indent + 1) + '- ' + k + ': '
+                      : '  '.repeat(indent + 2) + k + ': '));
+          } else {
+            out.push('  '.repeat(indent + 1) + '- ');
+          }
+        });
+        return out;
+      }
+      if (value && typeof value === 'object') {
+        const ks = Object.keys(value);
+        if (!ks.length) return [pad + key + ': {}'];
+        const out = [pad + key + ':'];
+        ks.forEach(k => out.push(...yamlLinesFor(k, value[k], indent + 1)));
+        return out;
+      }
+      return [pad + key + ': '];
+    }
+
+    function yamlFromVariables() {
+      const vars = parseVariables();
+      if (!vars.length) return '# No variables defined yet\n';
+      const out = ['# Fill in a value per key. A list means array, indented keys mean object.'];
+      vars.forEach(v => {
+        let def = '';
+        if (v.type === 'array' || v.type === 'object') {
+          try { def = JSON.parse(v.value); } catch (e) { def = v.type === 'array' ? [] : {}; }
+        }
+        out.push(...yamlLinesFor(v.name, def, 0));
+      });
+      return out.join('\n') + '\n';
+    }
+
+    function toggleCreateMenu(e) {
+      e.stopPropagation();
+      createMenu.classList.toggle('open');
+    }
+    document.addEventListener('click', () => createMenu.classList.remove('open'));
+
+    function createDataFile(mode) {
+      createMenu.classList.remove('open');
+      const def = mode === 'variables' ? 'variables.yaml' : 'data.yaml';
+      let name = prompt('Name your YAML data file:', def);
+      if (name === null) return;
+      name = ensureYamlName(name);
+      const content = mode === 'variables' ? yamlFromVariables() : '';
+      const file = { id: 'd_' + Date.now(), name, content, source: mode, updatedAt: Date.now() };
+      const files = loadData();
+      files.push(file);
+      saveData(files);
+      renderDataFiles();
+      openDataModal(file.id);   // open it for editing right away
+    }
+
+    function importDataFile() { dataFileInput.click(); }
+    dataFileInput.addEventListener('change', () => {
+      const file = dataFileInput.files && dataFileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const files = loadData();
+        files.push({
+          id: 'd_' + Date.now(),
+          name: ensureYamlName(file.name),
+          content: String(reader.result || ''),
+          source: 'import',
+          updatedAt: Date.now()
+        });
+        saveData(files);
+        renderDataFiles();
+      };
+      reader.readAsText(file);
+      dataFileInput.value = '';   // allow re-importing the same file
+    });
+
+    function deleteDataFile(id) {
+      const f = loadData().find(x => x.id === id);
+      if (f && !confirm('Delete "' + f.name + '"?')) return;
+      saveData(loadData().filter(x => x.id !== id));
+      renderDataFiles();
+    }
+
+    function renderDataFiles() {
+      const files = loadData().sort((a, b) => b.updatedAt - a.updatedAt);
+      dataFileList.innerHTML = '';
+      if (!files.length) {
+        const empty = document.createElement('div');
+        empty.className = 'var-empty';
+        empty.textContent = 'No data files yet. Create one or import a YAML file.';
+        dataFileList.appendChild(empty);
+        return;
+      }
+      const sourceLabel = { variables: 'variables', blank: 'blank', import: 'imported' };
+      files.forEach(f => {
+        const lines = Object.keys(parseYaml(f.content)).length;
+        const row = document.createElement('div');
+        row.className = 'datafile-row';
+        row.innerHTML =
+          '<div class="datafile-icon">' + svgIcon('file-text') + '</div>' +
+          '<div class="datafile-info">' +
+            '<div class="datafile-name"></div>' +
+            '<div class="datafile-sub"></div>' +
+          '</div>' +
+          '<span class="source-tag source-' + f.source + '"></span>' +
+          '<div class="datafile-actions">' +
+            '<button class="icon-btn" data-act="open">Open</button>' +
+            '<button class="icon-btn danger" data-act="del">' + svgIcon('trash') + '</button>' +
+          '</div>';
+        row.querySelector('.datafile-name').textContent = f.name;
+        row.querySelector('.datafile-sub').textContent = lines + (lines === 1 ? ' key' : ' keys');
+        row.querySelector('.source-tag').textContent = sourceLabel[f.source] || f.source;
+        row.querySelector('[data-act="open"]').onclick = () => openDataModal(f.id);
+        row.querySelector('[data-act="del"]').onclick = () => deleteDataFile(f.id);
+        dataFileList.appendChild(row);
+      });
+    }
+
+    function openDataModal(id) {
+      const f = loadData().find(x => x.id === id);
+      if (!f) return;
+      openDataId = id;
+      dataModalTitle.textContent = f.name;
+      dataModalText.value = f.content;
+      dataModal.classList.add('open');
+      dataModalText.focus();
+    }
+    function closeDataModal() { dataModal.classList.remove('open'); openDataId = null; }
+    function saveDataModal() {
+      const files = loadData();
+      const f = files.find(x => x.id === openDataId);
+      if (f) {
+        f.content = dataModalText.value;
+        f.updatedAt = Date.now();
+        saveData(files);
+        renderDataFiles();
+      }
+      closeDataModal();
+    }
+    function downloadDataFile() {
+      const f = loadData().find(x => x.id === openDataId);
+      if (!f) return;
+      const blob = new Blob([dataModalText.value], { type: 'text/yaml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = f.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ---------- {{ }} variable autocomplete ---------- */
+    const varSuggest = document.getElementById('varSuggest');
+    let suggestItems = [];     // filtered variable objects
+    let suggestIdx = 0;
+    let suggestRange = null;   // { start, end } of the partial word being typed
+    let caretMirror = null;
+
+    // Compute the caret's pixel position inside the textarea via a hidden mirror.
+    function caretCoords() {
+      if (!caretMirror) {
+        caretMirror = document.createElement('div');
+        caretMirror.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;left:-9999px;top:0;';
+        document.body.appendChild(caretMirror);
+      }
+      const cs = getComputedStyle(input);
+      ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing',
+       'paddingTop','paddingRight','paddingBottom','paddingLeft','tabSize'
+      ].forEach(p => caretMirror.style[p] = cs[p]);
+      caretMirror.textContent = input.value.slice(0, input.selectionStart);
+      const marker = document.createElement('span');
+      marker.textContent = '​';
+      caretMirror.appendChild(marker);
+      return { top: marker.offsetTop, left: marker.offsetLeft };
+    }
+
+    function closeSuggest() {
+      varSuggest.classList.remove('open');
+      suggestItems = [];
+      suggestRange = null;
+    }
+
+    // Suggestion pool: SET variables + dataset columns (name.column).
+    // Unique attribute (column) names across all datasets.
+    function allDatasetAttributes() {
+      const seen = new Set(), out = [];
+      loadDatasets().forEach(ds => ds.columns.forEach(c => {
+        if (c && !seen.has(c)) { seen.add(c); out.push(c); }
+      }));
+      return out;
+    }
+
+    function suggestionPool() {
+      // V3 (Dataset mode): reference attributes directly, e.g. {{city}}.
+      if (window.APP_VERSION === 3) {
+        return allDatasetAttributes().map(c => ({ name: c, type: 'attr' }));
+      }
+      // V1: SET variables (plus dataset columns if any).
+      const pool = parseVariables().map(v => ({ name: v.name, type: v.type }));
+      loadDatasets().forEach(ds => ds.columns.forEach(c => {
+        if (c) pool.push({ name: ds.name + '.' + c, type: 'dataset' });
+      }));
+      return pool;
+    }
+
+    let suggestMode = 'var';   // 'var' = {{…}} variables, 'api' = api. names
+
+    function updateSuggest() {
+      if (input.selectionStart !== input.selectionEnd) return closeSuggest();
+      const pos = input.selectionStart;
+      const before = input.value.slice(0, pos);
+
+      // `api.` dropdown — lists API names invoked earlier (works in every mode, on SET lines).
+      const apiM = before.match(/(?:^|[\s=(])api\.([A-Za-z_$][\w$]*)?$/);
+      const curLine = before.slice(before.lastIndexOf('\n') + 1);
+      if (apiM && /^\s*SET\b/.test(curLine)) {
+        const partial = (apiM[1] || '').toLowerCase();
+        suggestMode = 'api';
+        suggestItems = earlierApiNames(pos)
+          .filter(n => n.toLowerCase().startsWith(partial))
+          .map(n => ({ name: n, type: 'api' }));
+        suggestIdx = 0;
+        suggestRange = { start: pos - (apiM[1] || '').length, end: pos };
+        renderSuggest();
+        return;
+      }
+
+      // {{@  → pick a dataset (file) name.
+      const atFile = before.match(/\{\{\s*@([A-Za-z_$][\w$]*)?$/);
+      if (atFile) {
+        const partial = (atFile[1] || '').toLowerCase();
+        suggestMode = 'dsfile';
+        suggestItems = loadDatasets().map(d => d.name)
+          .filter(n => n.toLowerCase().startsWith(partial))
+          .map(n => ({ name: n, type: 'dataset' }));
+        suggestIdx = 0;
+        suggestRange = { start: pos - (atFile[1] || '').length, end: pos };
+        renderSuggest();
+        return;
+      }
+      // {{@file.  → pick a field path within that file's records.
+      const atField = before.match(/\{\{\s*@([A-Za-z_$][\w$]*)\.([\w$.]*)$/);
+      if (atField) {
+        const ds = loadDatasets().find(d => d.name === atField[1]);
+        const partial = (atField[2] || '').toLowerCase();
+        suggestMode = 'dsfield';
+        suggestItems = (ds ? datasetFieldPaths(ds) : [])
+          .filter(p => p.toLowerCase().startsWith(partial))
+          .map(p => ({ name: p, type: 'attr' }));
+        suggestIdx = 0;
+        suggestRange = { start: pos - (atField[2] || '').length, end: pos };
+        renderSuggest();
+        return;
+      }
+
+      // V3 (Dataset mode): no bare {{…}} autocomplete — datasets are reached via {{@file.…}}.
+      if (window.APP_VERSION === 3) return closeSuggest();
+      const m = before.match(/\{\{\s*([\w$.]*)$/);   // caret right after "{{ partial" (dots allowed)
+      if (!m) return closeSuggest();
+      const partial = m[1].toLowerCase();
+      suggestMode = 'var';
+      suggestItems = suggestionPool().filter(v => v.name.toLowerCase().startsWith(partial));
+      suggestIdx = 0;
+      suggestRange = { start: pos - m[1].length, end: pos };
+      renderSuggest();
+    }
+
+    // All field paths within a dataset's records (intermediate objects + leaves), for autocomplete.
+    function datasetFieldPaths(ds) {
+      const set = new Set();
+      const walk = (obj, prefix) => {
+        if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return;
+        Object.keys(obj).forEach(k => {
+          if (k === 'key') return;
+          const p = prefix ? prefix + '.' + k : k;
+          set.add(p);
+          const v = obj[k];
+          if (v && typeof v === 'object' && !Array.isArray(v)) walk(v, p);
+        });
+      };
+      datasetRichRecords(ds).forEach(rec => walk(rec, ''));
+      return Array.from(set);
+    }
+
+    function renderSuggest() {
+      varSuggest.innerHTML = '';
+      if (!suggestItems.length) {
+        varSuggest.innerHTML = '<div class="vs-empty">' +
+          (window.APP_VERSION === 3 ? 'No matching dataset columns — create a dataset in Test Data'
+                                    : 'No matching variables — define one with SET') + '</div>';
+      } else {
+        suggestItems.forEach((v, i) => {
+          const row = document.createElement('div');
+          row.className = 'vs-row' + (i === suggestIdx ? ' sel' : '');
+          row.innerHTML = '<span class="vs-var-name"></span>' +
+            '<span class="type-badge type-' + v.type + '">' + v.type + '</span>';
+          row.querySelector('.vs-var-name').textContent = v.name;
+          row.onmousedown = (e) => { e.preventDefault(); acceptSuggest(i); };
+          varSuggest.appendChild(row);
+        });
+      }
+      const c = caretCoords();
+      const lh = parseFloat(getComputedStyle(input).lineHeight) || 24;
+      varSuggest.style.left = Math.max(0, c.left - input.scrollLeft) + 'px';
+      varSuggest.style.top = (c.top - input.scrollTop + lh + 4) + 'px';
+      varSuggest.classList.add('open');
+    }
+
+    function acceptSuggest(i) {
+      const v = suggestItems[i != null ? i : suggestIdx];
+      if (!v || !suggestRange) return closeSuggest();
+      const val = input.value;
+      const after = val.slice(suggestRange.end);
+      let insert, caret;
+      if (suggestMode === 'api') {
+        // Insert the api name + ("") and land the caret between the quotes.
+        const hasParen = after.startsWith('(');
+        insert = v.name + (hasParen ? '' : '("")');
+        caret = suggestRange.start + v.name.length + (hasParen ? 0 : 2);  // inside the quotes
+      } else if (suggestMode === 'dsfile') {
+        // Insert the file name + a dot; keep going to pick a field (no closing braces yet).
+        const hasDot = after.startsWith('.');
+        insert = v.name + (hasDot ? '' : '.');
+        caret = suggestRange.start + v.name.length + (hasDot ? 0 : 1);
+      } else {
+        // var / dsfield: insert the name and close the braces.
+        const hasClose = after.startsWith('}}');
+        insert = v.name + (hasClose ? '' : '}}');
+        caret = suggestRange.start + v.name.length + 2;  // land just after }}
+      }
+      const wasFile = suggestMode === 'dsfile';
+      input.value = val.slice(0, suggestRange.start) + insert + after;
+      input.selectionStart = input.selectionEnd = caret;
+      closeSuggest();
+      update(); markDirty(true); renderVariables();
+      input.focus();
+      if (wasFile) updateSuggest();   // immediately offer the file's fields
+    }
+
+    input.addEventListener('keydown', (e) => {
+      // When the suggestion box is open, intercept navigation keys
+      if (varSuggest.classList.contains('open') && suggestItems.length) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); suggestIdx = (suggestIdx + 1) % suggestItems.length; renderSuggest(); return; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); suggestIdx = (suggestIdx - 1 + suggestItems.length) % suggestItems.length; renderSuggest(); return; }
+        if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); acceptSuggest(); return; }
+        if (e.key === 'Escape')    { e.preventDefault(); closeSuggest(); return; }
+      }
+      // Tab inserts spaces instead of leaving the field
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = input.selectionStart, en = input.selectionEnd;
+        input.value = input.value.slice(0, s) + '  ' + input.value.slice(en);
+        input.selectionStart = input.selectionEnd = s + 2;
+        update();
+      }
+    });
+
+    /* ---------- Views ---------- */
+    const VIEW_IDS = { editor: 'editorView', projects: 'projectsView', testdata: 'testDataView', plans: 'plansView' };
+    function switchView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(VIEW_IDS[name] || 'editorView').classList.add('active');
+      document.getElementById('navEditor').classList.toggle('active', name === 'editor');
+      document.getElementById('navProjects').classList.toggle('active', name === 'projects');
+      document.getElementById('navTestData').classList.toggle('active', name === 'testdata');
+      document.getElementById('navPlans').classList.toggle('active', name === 'plans');
+      if (name === 'projects') renderProjects();
+      if (name === 'testdata') { rebuildVariables(); renderVariables(); renderDataFiles(); renderDatasets(); }
+      if (name === 'plans') { renderSavedPlans(); renderPlanBuilder(); }
+      if (name === 'editor') input.focus();
+    }
+
+    /* ---------- Projects: save & load ---------- */
+    const STORE_KEY = 'drizz.projects';
+    const tabName = document.getElementById('tabName');
+    const dirtyDot = document.getElementById('dirtyDot');
+    const projectsGrid = document.getElementById('projectsGrid');
+    const projectsCount = document.getElementById('projectsCount');
+    const varTable = document.getElementById('varTable');
+    const varCount = document.getElementById('varCount');
+
+    let currentId = null;   // id of the open saved file (null = unsaved new file)
+    let dirty = false;
+
+    function loadStore() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+      catch (e) { return []; }
+    }
+    function saveStore(files) {
+      localStorage.setItem(STORE_KEY, JSON.stringify(files));
+    }
+
+    function markDirty(v) {
+      dirty = v;
+      dirtyDot.classList.toggle('show', v);
+    }
+
+    function formatDate(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+             ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    function renderProjects() {
+      const files = loadStore().sort((a, b) => b.updatedAt - a.updatedAt);
+      projectsCount.textContent = files.length
+        ? files.length + (files.length === 1 ? ' saved file' : ' saved files')
+        : 'All your saved test files';
+      projectsGrid.innerHTML = '';
+
+      if (!files.length) {
+        const empty = document.createElement('div');
+        empty.className = 'projects-empty';
+        empty.innerHTML =
+          '<div class="big">' + svgIcon('folder') + '</div>' +
+          '<div class="sub">No saved files yet. Create one in the Editor and hit Save.</div>';
+        projectsGrid.appendChild(empty);
+        return;
+      }
+
+      files.forEach(f => {
+        const preview = (f.content || '').split('\n').slice(0, 5).join('\n') || '(empty)';
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        card.onclick = () => openFile(f.id);
+        card.innerHTML =
+          '<div class="file-card-top">' +
+            '<div style="display:flex;gap:12px;align-items:center;min-width:0;">' +
+              '<div class="file-card-icon">' + svgIcon('file-text') + '</div>' +
+              '<div class="file-card-name"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="file-card-preview"></div>' +
+          '<div class="file-card-meta">' +
+            '<span class="updated"></span>' +
+            '<button class="file-card-del" title="Delete">' + svgIcon('trash') + ' Delete</button>' +
+          '</div>';
+        card.querySelector('.file-card-name').textContent = f.name;
+        card.querySelector('.file-card-preview').textContent = preview;
+        card.querySelector('.updated').textContent = 'Updated ' + formatDate(f.updatedAt);
+        card.querySelector('.file-card-del').onclick = (e) => { e.stopPropagation(); deleteFile(f.id); };
+        projectsGrid.appendChild(card);
+      });
+    }
+
+    function openFile(id) {
+      const files = loadStore();
+      const f = files.find(x => x.id === id);
+      if (!f) return;
+      currentId = f.id;
+      input.value = f.content;
+      tabName.textContent = f.name;
+      rebuildVariables();
+      update();
+      markDirty(false);
+      switchView('editor');
+    }
+
+    function newFile() {
+      if (dirty && input.value.trim() && !confirm('Discard unsaved changes and start a new file?')) return;
+      currentId = null;
+      input.value = '';
+      tabName.textContent = 'Untitled File';
+      rebuildVariables();
+      update();
+      renderVariables();
+      markDirty(false);
+      closeSuggest();
+      switchView('editor');
+      input.focus();
+    }
+
+    function deleteFile(id) {
+      const f = loadStore().find(x => x.id === id);
+      if (f && !confirm('Delete "' + f.name + '"?')) return;
+      const files = loadStore().filter(x => x.id !== id);
+      saveStore(files);
+      if (id === currentId) { currentId = null; tabName.textContent = 'Untitled File'; markDirty(true); }
+      rebuildVariables();
+      renderProjects();
+    }
+
+    function saveFile() {
+      const files = loadStore();
+      if (currentId) {
+        // Update existing file in place
+        const f = files.find(x => x.id === currentId);
+        if (f) {
+          f.content = input.value;
+          f.updatedAt = Date.now();
+          saveStore(files);
+          markDirty(false);
+          rebuildVariables();
+          return;
+        }
+        currentId = null; // fell through (file was deleted) — save as new
+      }
+      // New file — ask for a name
+      const def = (input.value.trim().split('\n')[0] || 'Untitled File').slice(0, 40);
+      let name = prompt('Save file as:', def);
+      if (name === null) return;          // cancelled
+      name = name.trim() || 'Untitled File';
+      const id = 'f_' + Date.now();
+      files.push({ id, name, content: input.value, updatedAt: Date.now() });
+      saveStore(files);
+      currentId = id;
+      tabName.textContent = name;
+      markDirty(false);
+      rebuildVariables();
+    }
+
+    // Cmd/Ctrl+S saves
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveFile();
+      }
+    });
+
+    /* ---------- Run Test (dummy runner) ---------- */
+    const logsBody = document.getElementById('logsBody');
+    const runBtn = document.getElementById('runBtn');
+    const runLabel = document.getElementById('runLabel');
+    const runIcon = document.getElementById('runIcon');
+    const statusText = document.getElementById('statusText');
+    const recDot = document.querySelector('#statusBadge .rec-dot');
+    let isRunning = false;
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    function stamp() {
+      const d = new Date(), p = n => String(n).padStart(2, '0');
+      return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+
+    // html is treated as trusted markup the caller has already escaped.
+    function appendLog(html, cls) {
+      const line = document.createElement('div');
+      line.className = 'log-line ' + (cls || '');
+      line.innerHTML = '<span class="log-ts">[' + stamp() + ']</span> <span class="log-msg">' + html + '</span>';
+      logsBody.appendChild(line);
+      scrollLogsBottom();
+      return line;
+    }
+
+    function scrollLogsBottom() { logsBody.scrollTop = logsBody.scrollHeight; }
+    function clearLogs() {
+      logsBody.innerHTML = '<div class="log-line muted"><span class="log-ts">[' + stamp() +
+        ']</span> <span class="log-msg">Logs cleared</span></div>';
+    }
+    function copyLogs() {
+      navigator.clipboard && navigator.clipboard.writeText(logsBody.innerText);
+    }
+
+    function setRunning(on) {
+      runBtn.disabled = on;
+      runLabel.textContent = on ? 'Running…' : 'Run Test';
+      runIcon.innerHTML = svgIcon(on ? 'square' : 'play', on ? '' : 'fill');
+      recDot.classList.toggle('running', on);
+      statusText.textContent = on ? 'Running test…' : 'Idle';
+    }
+
+    /* ----- Data-file helpers ----- */
+
+    // Parse a YAML data file's top-level "key: value" pairs into an object.
+    /* ---------- Minimal typed-YAML (subset) ----------
+       Supports nested maps, lists, scalars with type inference, and inline [..]/{..}.
+       So a data file knows which key is a scalar, an object, or an array. */
+    function yamlScalar(s) {
+      s = (s || '').trim();
+      if (s === '') return '';
+      if (s === 'null' || s === '~') return null;
+      if (s === 'true') return true;
+      if (s === 'false') return false;
+      if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(s)) return Number(s);
+      if (s[0] === '[' || s[0] === '{') { try { return JSON.parse(s); } catch (e) {} }
+      if ((s[0] === '"' && s.slice(-1) === '"') ||
+          (s[0] === "'" && s.slice(-1) === "'")) return s.slice(1, -1);
+      return s;
+    }
+    function isKeyVal(s) { return /^[^:\s][^:]*:(\s|$)/.test(s); }
+
+    function parseYaml(content) {
+      const rows = [];
+      (content || '').replace(/\t/g, '  ').split('\n').forEach(l => {
+        if (!l.trim() || l.trim().startsWith('#')) return;
+        rows.push({ indent: l.match(/^ */)[0].length, text: l.trim() });
+      });
+      let pos = 0;
+      function node(indent) {
+        if (pos >= rows.length) return null;
+        // List
+        if (rows[pos].text === '-' || rows[pos].text.startsWith('- ')) {
+          const arr = [];
+          while (pos < rows.length && rows[pos].indent === indent &&
+                 (rows[pos].text === '-' || rows[pos].text.startsWith('- '))) {
+            const after = rows[pos].text === '-' ? '' : rows[pos].text.slice(2).trim();
+            if (after === '') {
+              pos++;
+              arr.push(pos < rows.length && rows[pos].indent > indent ? node(rows[pos].indent) : '');
+            } else if (isKeyVal(after)) {
+              // list item that is a map: first key on the dash line, siblings indented further
+              const obj = {};
+              const ci = after.indexOf(':');
+              const k = after.slice(0, ci).trim(), v = after.slice(ci + 1).trim();
+              pos++;
+              obj[k] = v === '' ? (pos < rows.length && rows[pos].indent > indent + 1 ? node(rows[pos].indent) : '') : yamlScalar(v);
+              while (pos < rows.length && rows[pos].indent === indent + 2 &&
+                     !rows[pos].text.startsWith('- ') && isKeyVal(rows[pos].text)) {
+                const t = rows[pos].text, c2 = t.indexOf(':');
+                const k2 = t.slice(0, c2).trim(), v2 = t.slice(c2 + 1).trim();
+                pos++;
+                obj[k2] = v2 === '' ? (pos < rows.length && rows[pos].indent > indent + 2 ? node(rows[pos].indent) : '') : yamlScalar(v2);
+              }
+              arr.push(obj);
+            } else {
+              arr.push(yamlScalar(after));
+              pos++;
+            }
+          }
+          return arr;
+        }
+        // Map
+        const obj = {};
+        while (pos < rows.length && rows[pos].indent === indent && !rows[pos].text.startsWith('- ')) {
+          const t = rows[pos].text, ci = t.indexOf(':');
+          if (ci === -1) { pos++; continue; }
+          const key = t.slice(0, ci).trim(), val = t.slice(ci + 1).trim();
+          pos++;
+          if (val === '') {
+            obj[key] = (pos < rows.length && rows[pos].indent > indent) ? node(rows[pos].indent) : '';
+          } else {
+            obj[key] = yamlScalar(val);
+          }
+        }
+        return obj;
+      }
+      return node(rows.length ? rows[0].indent : 0) || {};
+    }
+
+    // A value counts as resolved if it's a non-blank scalar, or a non-empty array/object
+    // whose leaves are all resolved.
+    function isResolved(v) {
+      if (v === undefined) return false;
+      if (v === null) return true;
+      if (typeof v === 'string') return v.trim() !== '';
+      if (Array.isArray(v)) return v.length > 0 && v.every(isResolved);
+      if (typeof v === 'object') return Object.keys(v).length > 0 && Object.values(v).every(isResolved);
+      return true; // number / boolean
+    }
+
+    // Variables not resolved by a data file (missing key or blank value, deeply).
+    function missingVarsForFile(file, names) {
+      const vals = parseYaml(file.content);
+      return names.filter(n => !isResolved(vals[n]));
+    }
+
+    /* ----- Run options menu ----- */
+    const runMenu = document.getElementById('runMenu');
+
+    function toggleRunMenu(e) {
+      e.stopPropagation();
+      if (runMenu.classList.contains('open')) { runMenu.classList.remove('open'); return; }
+      buildRunMenu();
+      runMenu.classList.add('open');
+    }
+    document.addEventListener('click', () => runMenu.classList.remove('open'));
+
+    // Variables actually referenced via {{ }} in the current test (in order, deduped).
+    function referencedVarNames() {
+      const names = [], seen = new Set();
+      input.value.split('\n').forEach(line => {
+        if (!line.trim() || line.trim().startsWith('#')) return;
+        let m; const re = /\{\{\s*([A-Za-z_$][\w$]*)\s*\}\}/g;
+        while ((m = re.exec(line))) { if (!seen.has(m[1])) { seen.add(m[1]); names.push(m[1]); } }
+      });
+      return names;
+    }
+
+    /* ----- V1.1 index resolution helpers ----- */
+
+    // SET defaults (typed) overridden by a data file's values. No indexing yet.
+    function baseValues(file) {
+      const values = {};
+      parseVariables().forEach(v => { values[v.name] = setValueOf(v); });
+      if (file) Object.assign(values, parseYaml(file.content));
+      return values;
+    }
+
+    // Resolve list-valued referenced vars to a single element at `index`; scalars pass through.
+    function indexValues(base, names, index) {
+      const v = Object.assign({}, base);
+      if (index != null) names.forEach(n => {
+        if (Array.isArray(v[n])) v[n] = index < v[n].length ? v[n][index] : undefined;
+      });
+      return v;
+    }
+
+    function displayVal(v) {
+      if (v === undefined) return '∅';
+      if (v === null) return 'null';
+      return (typeof v === 'object') ? JSON.stringify(v) : String(v);
+    }
+
+    function buildRunMenu() {
+      const names = referencedVarNames();   // only what THIS test uses
+      const files = loadData();
+      runMenu.innerHTML = '';
+
+      // Default option
+      const def = document.createElement('button');
+      def.className = 'run-opt';
+      def.innerHTML = '<span class="ro-icon">▶</span><div class="ro-body">' +
+        '<div class="ro-name">Run with default values</div>' +
+        '<div class="ro-sub">' + (window.APP_VERSION === 3 ? 'Uses row 0 of the matching dataset' : 'Uses each variable\'s SET value') + '</div></div>';
+      def.onclick = () => { runMenu.classList.remove('open'); runTest(); };
+      runMenu.appendChild(def);
+
+      const div = document.createElement('div');
+      div.className = 'run-menu-divider';
+      runMenu.appendChild(div);
+
+      // V3: dataset-based run menu (pick a dataset row)
+      if (window.APP_VERSION === 3) { buildDatasetRunMenu(); return; }
+
+      const label = document.createElement('div');
+      label.className = 'run-menu-label';
+      label.textContent = 'Run with data file';
+      runMenu.appendChild(label);
+
+      if (!files.length) {
+        const e = document.createElement('div');
+        e.className = 'run-menu-label';
+        e.style.textTransform = 'none';
+        e.style.color = 'var(--text-faint)';
+        e.textContent = 'No data files yet — create one in Test Data.';
+        runMenu.appendChild(e);
+        return;
+      }
+
+      const previewOf = (vals) => names.map(n => escapeHtml(n) + '=' + escapeHtml(displayVal(vals[n]))).join(', ');
+
+      // Build an entry per file: list-aware (index selector) or flat (single run).
+      const entries = files.map(f => {
+        const base = baseValues(f);
+        const listNames = names.filter(n => Array.isArray(base[n]));
+        if (!listNames.length) {
+          const missing = names.filter(n => !isResolved(base[n]));
+          return { f, hasList: false, runnable: !missing.length, missing, base };
+        }
+        const maxLen = Math.max(...listNames.map(n => base[n].length));
+        const options = [];
+        for (let i = 0; i < maxLen; i++) {
+          const vals = indexValues(base, names, i);
+          const missing = names.filter(n => !isResolved(vals[n]));
+          options.push({ index: i, resolved: !missing.length, missing, vals });
+        }
+        return { f, hasList: true, runnable: options.some(o => o.resolved), listNames, maxLen, options };
+      }).sort((a, b) => (b.runnable ? 1 : 0) - (a.runnable ? 1 : 0));
+
+      entries.forEach(entry => {
+        const { f } = entry;
+        if (!entry.hasList) {
+          // No list among referenced vars → a single run, no index needed.
+          const opt = document.createElement('button');
+          opt.className = 'run-opt';
+          opt.disabled = !entry.runnable;
+          const sub = entry.runnable
+            ? '<div class="ro-sub">' + (names.length ? 'Resolves ' + escapeHtml(names.join(', ')) + ' ✓' : 'No variables needed') + '</div>'
+            : '<div class="ro-sub miss">Missing: ' + escapeHtml(entry.missing.join(', ')) + '</div>';
+          opt.innerHTML = '<span class="ro-icon">🧾</span><div class="ro-body"><div class="ro-name"></div>' + sub + '</div>';
+          opt.querySelector('.ro-name').textContent = f.name;
+          if (entry.runnable) opt.onclick = () => { runMenu.classList.remove('open'); runTest(f.id); };
+          runMenu.appendChild(opt);
+          return;
+        }
+
+        // List present → show an index selector under the file.
+        const head = document.createElement('div');
+        head.className = 'run-file-head';
+        head.textContent = '🧾 ' + f.name + ' · list ' + entry.listNames.join(', ') + ' (' + entry.maxLen + ' indices)';
+        runMenu.appendChild(head);
+
+        entry.options.forEach(o => {
+          const opt = document.createElement('button');
+          opt.className = 'run-opt index-opt';
+          opt.disabled = !o.resolved;
+          const sub = o.resolved
+            ? '<div class="ro-sub">' + previewOf(o.vals) + ' ✓</div>'
+            : '<div class="ro-sub miss">Missing: ' + escapeHtml(o.missing.join(', ')) + '</div>';
+          opt.innerHTML = '<span class="ro-icon">#' + o.index + '</span><div class="ro-body">' +
+            '<div class="ro-name">Index ' + o.index + '</div>' + sub + '</div>';
+          if (o.resolved) opt.onclick = () => { runMenu.classList.remove('open'); runTest(f.id, o.index); };
+          runMenu.appendChild(opt);
+        });
+      });
+    }
+
+    // Columns of a dataset referenced by the current test.
+    function referencedColumnsFor(dsName) {
+      const cols = [], seen = new Set();
+      referencedRefs().forEach(r => {
+        if (r.indexOf('.') === -1) return;
+        const [d, c] = r.split('.');
+        if (d === dsName && !seen.has(c)) { seen.add(c); cols.push(c); }
+      });
+      return cols;
+    }
+
+    function buildDatasetRunMenu() {
+      const label = document.createElement('div');
+      label.className = 'run-menu-label';
+      label.textContent = 'Run with dataset row';
+      runMenu.appendChild(label);
+
+      const note = (text, color) => {
+        const e = document.createElement('div');
+        e.className = 'run-menu-label';
+        e.style.textTransform = 'none';
+        e.style.color = color || 'var(--text-faint)';
+        e.textContent = text;
+        runMenu.appendChild(e);
+      };
+
+      const datasets = loadDatasets();
+      if (!datasets.length) { note('No datasets yet — create one in Test Data.'); return; }
+
+      // Referenced attributes are plain {{column}} tokens.
+      const attrs = referencedRefs().filter(r => r.indexOf('.') === -1);
+      if (!attrs.length) { note('Reference an attribute with {{column}} to pick a dataset row.'); return; }
+
+      // SET variables resolve without a dataset; the dataset supplies the rest.
+      const setVals = {};
+      parseVariables().forEach(v => { setVals[v.name] = v.type === 'null' ? null : v.value; });
+      const valOf = (ds, row, a) => {
+        const ci = ds.columns.indexOf(a);
+        return ci >= 0 ? row[ci] : setVals[a];
+      };
+
+      datasets.forEach(ds => {
+        // only show datasets that actually contribute a referenced column
+        if (!attrs.some(a => ds.columns.indexOf(a) >= 0)) return;
+        const head = document.createElement('div');
+        head.className = 'run-file-head';
+        const uncovered = attrs.filter(a => ds.columns.indexOf(a) < 0 && !(a in setVals));
+        if (uncovered.length) {
+          head.textContent = '🧮 ' + ds.name + ' — unresolved: ' + uncovered.join(', ');
+          head.style.color = 'var(--text-faint)';
+          runMenu.appendChild(head);
+          return;
+        }
+        head.textContent = '🧮 ' + ds.name + ' (' + ds.rows.length + ' rows)';
+        runMenu.appendChild(head);
+
+        ds.rows.forEach((row, ri) => {
+          const missing = attrs.filter(a => !isResolved(valOf(ds, row, a)));
+          const resolved = missing.length === 0;
+          const preview = attrs.map(a =>
+            escapeHtml(a) + '=' + escapeHtml(displayVal(valOf(ds, row, a)))).join(', ');
+          const opt = document.createElement('button');
+          opt.className = 'run-opt index-opt';
+          opt.disabled = !resolved;
+          opt.innerHTML = '<span class="ro-icon">#' + ri + '</span><div class="ro-body">' +
+            '<div class="ro-name">Row ' + ri + '</div>' +
+            (resolved ? '<div class="ro-sub">' + preview + ' ✓</div>'
+                      : '<div class="ro-sub miss">Missing: ' + escapeHtml(missing.join(', ')) + '</div>') +
+            '</div>';
+          if (resolved) opt.onclick = () => { runMenu.classList.remove('open'); runTest(ds.id, ri); };
+          runMenu.appendChild(opt);
+        });
+      });
+    }
+
+    /* ----- The runner ----- */
+
+    // Resolve one reference against an env { vars }.
+    // Order: exact key (e.g. an entered 'city.currency' override or a plain var),
+    //        then a dotted PATH into an object-valued var (city → currency).
+    function resolveRef(ref, env) {
+      const vars = env.vars || {};
+      if (ref[0] === '@') {
+        // dataset ref: the chosen record is bound under the '@file' key; walk its path.
+        const segs = ref.slice(1).split('.');
+        const rec = vars['@' + segs[0]];
+        if (rec === undefined) return undefined;
+        const path = segs.slice(1);
+        return path.length ? getPath(rec, path) : rec;
+      }
+      if (Object.prototype.hasOwnProperty.call(vars, ref)) return vars[ref];
+      const segs = ref.split('.');
+      if (segs.length > 1 && Object.prototype.hasOwnProperty.call(vars, segs[0])) {
+        const v = getPath(vars[segs[0]], segs.slice(1));
+        if (v !== undefined) return v;
+      }
+      return undefined;
+    }
+
+    // Resolve {{var}} / {{dataset.column}} tokens; unknown refs are left as-is.
+    function resolveTokens(text, env) {
+      return text.replace(REF_RE, (full, ref) => {
+        const v = resolveRef(ref, env);
+        if (v === undefined) return full;
+        return (v !== null && typeof v === 'object') ? JSON.stringify(v) : String(v);
+      });
+    }
+
+    // All reference tokens used by the test, in order, deduped (includes dataset.column).
+    function referencedRefs() {
+      const refs = [], seen = new Set();
+      input.value.split('\n').forEach(line => {
+        if (!line.trim() || line.trim().startsWith('#')) return;
+        let m; REF_RE.lastIndex = 0;
+        while ((m = REF_RE.exec(line))) { if (!seen.has(m[1])) { seen.add(m[1]); refs.push(m[1]); } }
+      });
+      return refs;
+    }
+    function referencedDatasetNames() {
+      const set = new Set();
+      referencedRefs().forEach(r => { if (r.indexOf('.') >= 0) set.add(r.split('.')[0]); });
+      return Array.from(set);
+    }
+
+    async function runTest(dataFileId, index, overrides) {
+      if (isRunning) return;
+      const steps = input.value.split('\n')
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith('#'));
+
+      if (!steps.length) {
+        logsBody.innerHTML = '';
+        appendLog('No steps to run — write some commands in the editor first.', 'muted');
+        return;
+      }
+
+      // Build the resolution env. V3 → dataset rows; otherwise → SET defaults + YAML file (index-resolved).
+      const env = { vars: {}, datasets: loadDatasets(), rowMap: {} };
+      let sourceLabel = 'default values';
+
+      if (window.APP_VERSION === 3) {
+        // Resolve ONLY from this editor's own SET lines (not aggregated from other files),
+        // so every variable in this test is validated independently.
+        parseSetMap(input.value).forEach(v => { env.vars[v.name] = setValueOf(v); });
+        // The editor is NOT auto-connected to datasets. Values come only from SET (above)
+        // or from the Resolve window (overrides). Datasets are reached explicitly there.
+      } else {
+        const names = referencedVarNames();
+        const file = dataFileId ? loadData().find(x => x.id === dataFileId) : null;
+        env.vars = indexValues(baseValues(file), names, index);
+        sourceLabel = file
+          ? 'data file “' + file.name + '”' + (index != null ? ' · index ' + index : '')
+          : 'default values';
+      }
+
+      // Manually-entered values (from the Resolve window) win over everything.
+      if (overrides) { Object.assign(env.vars, overrides); sourceLabel = 'entered values'; }
+
+      // V3 default run: if any referenced ref/path is still unresolved, ask the user.
+      if (window.APP_VERSION === 3 && dataFileId == null && !overrides) {
+        const unresolved = referencedRefs().filter(a => !isResolved(resolveRef(a, env)));
+        if (unresolved.length) { openResolveModal(unresolved, ov => runTest(null, null, ov)); return; }
+      }
+
+      logsBody.innerHTML = '';
+      isRunning = true;
+      setRunning(true);
+      appendLog('Run started · ' + steps.length + ' step' + (steps.length > 1 ? 's' : '') +
+        ' · ' + escapeHtml(sourceLabel), 'info');
+
+      // Show only the references the steps actually use — the relevant data.
+      const used = referencedRefs();
+      if (used.length) {
+        const data = used.map(r =>
+          '<b>' + escapeHtml(r) + '</b>=' + escapeHtml(displayVal(resolveRef(r, env)))).join('   ');
+        appendLog('<span class="log-data">Data · ' + data + '</span>', '');
+      }
+
+      for (let i = 0; i < steps.length; i++) {
+        await sleep(1000);   // each step takes ~1 second
+        const resolved = resolveTokens(steps[i], env);
+        const cmd = resolved.split(/\s+/)[0];
+        const rest = resolved.slice(cmd.length);
+        appendLog(
+          '<span class="log-idx">' + (i + 1) + '</span>' +
+          '<span class="log-cmd">' + escapeHtml(cmd) + '</span>' + escapeHtml(rest) +
+          '<span class="log-pass">✓</span>',
+          'step'
+        );
+      }
+
+      await sleep(400);
+      appendLog('Run finished · ' + steps.length + '/' + steps.length + ' passed', 'success');
+      setRunning(false);
+      isRunning = false;
+    }
+
+    // Restore the saved prototype version (defaults to V1)
+    setVersion(3);
+
+    // Seed with a starter script that shows the SET expression forms.
+    input.value = [
+      'OPEN_APP com.example.app',
+      'SET city = "Mumbai"',
+      'API loginApi',
+      'SET auth_status = api.loginApi("the status code")',
+      'SET token = api.loginApi("token")',
+      'SET order_id = screen()',
+      'SET email = ai("a test email")',
+      'TYPE {{email}}',
+      ''
+    ].join('\n');
+    input.selectionStart = input.selectionEnd = input.value.length;
+    rebuildVariables();
+    update();
+    renderProjects();
+    renderVariables();
+    renderDataFiles();
+    renderDatasets();
+    hydrateIcons();          // swap all static data-ico placeholders for SVG
+    setRunning(false);       // paint the Run button's play icon
+    input.focus();
+  </script>
+</body>
+</html>
