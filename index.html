@@ -398,6 +398,18 @@
 
     /* Test Plans */
     .plans-body { flex: 1; overflow: auto; padding: 26px 30px; }
+    #planListPane, #planBuilderPane { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    .plan-build-tabs { display: flex; gap: 4px; padding: 0 30px; border-bottom: 1px solid var(--border); }
+    .plan-build-tab {
+      border: none; background: none; cursor: pointer;
+      padding: 12px 16px; font-family: var(--sans); font-size: 14px; font-weight: 600;
+      color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .plan-build-tab:hover { color: var(--text); }
+    .plan-build-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+    .plan-build-body { flex: 1; overflow: auto; padding: 22px 30px; min-height: 0; display: flex; flex-direction: column; }
+    #planTabData { display: flex; flex-direction: column; min-height: 0; }
+    #planResolveSplit { flex: 1; min-height: 320px; }
     .plan-cases { display: flex; flex-direction: column; }
     .plan-case {
       display: flex; align-items: center; gap: 12px;
@@ -499,6 +511,8 @@
     }
     .rv-file-search:focus { border-color: var(--purple); }
     .rv-file-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+    /* The plan builder's detail pane is full-width → fit 4 file cards per row. */
+    #planResolveDetail .rv-file-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .rv-file-card {
       border: 1px solid var(--border-strong); border-radius: 12px;
       padding: 12px; background: #fff; box-shadow: var(--shadow-sm);
@@ -956,6 +970,14 @@
     }
     .ds-card-del .ico { width: 14px; height: 14px; }
     .ds-card-del:hover { color: #ef4444; background: #fef2f2; }
+    .plan-run-btn { height: 32px; font-size: 13px; padding: 0 14px; }
+    .plan-run-btn.disabled { opacity: 0.45; pointer-events: none; }
+    .plan-updated-pill {
+      flex: none; font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em;
+      padding: 2px 8px; border-radius: 999px;
+      background: #fef3c7; color: #b45309; border: 1px solid #fde68a;
+    }
+    .plan-updated-note { color: #b45309; }
 
     /* Dataset search + pagination */
     .ds-search {
@@ -1134,6 +1156,18 @@
     .confirm-icon .ico { width: 22px; height: 22px; }
     .confirm-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
     .confirm-msg { font-size: 14px; color: var(--text-muted); line-height: 1.55; margin-bottom: 22px; }
+    .confirm-list {
+      list-style: none; width: 100%; text-align: left;
+      margin: 0 0 20px; padding: 8px 4px; max-height: 160px; overflow-y: auto;
+      border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft);
+    }
+    .confirm-list:empty { display: none; }
+    .confirm-list li {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 12px; font-size: 13.5px; color: var(--text);
+    }
+    .confirm-list li + li { border-top: 1px solid var(--border); }
+    .confirm-list li .ico { width: 15px; height: 15px; color: var(--purple); flex: none; }
     .confirm-actions { display: flex; gap: 10px; width: 100%; }
     .confirm-actions .btn { flex: 1; justify-content: center; }
 
@@ -1690,49 +1724,46 @@
 
    <!-- ===== Test Plans view ===== -->
    <div class="view" id="plansView">
-    <div class="projects-header">
-      <div>
-        <h1 class="projects-title">Test Plans</h1>
-        <p class="projects-sub">Select test cases, resolve all their variables once, and run them together.</p>
+    <!-- ===== Plans LIST ===== -->
+    <div id="planListPane">
+      <div class="projects-header">
+        <div>
+          <h1 class="projects-title">Test Plans</h1>
+          <p class="projects-sub">Saved plans run a set of test cases with pre-resolved data.</p>
+        </div>
+        <button class="btn primary" onclick="newPlan()"><span data-ico="plus"></span> Create test plan</button>
       </div>
-      <button class="btn primary" id="planRunBtn" onclick="runPlanFromBuilder()"><span data-ico="play" data-ico-fill="1"></span> Run Plan</button>
+      <div class="plans-body"><div class="dataset-grid" id="savedPlansList"></div></div>
     </div>
-    <div class="plans-body">
-      <div class="td-section">
-        <div class="td-section-head">
-          <span>Saved plans</span>
-          <span class="td-hint">A red dot means a dataset it uses was deleted</span>
-        </div>
-        <div class="datafile-list" id="savedPlansList"></div>
-      </div>
-      <div class="td-section" style="margin-top: 24px;">
-        <div class="td-section-head">
-          <span>Select test cases</span>
-          <span class="td-hint">Saved test cases from Projects</span>
-        </div>
-        <div class="plan-cases" id="planCases"></div>
-      </div>
-      <div class="td-section" style="margin-top: 24px;">
-        <div class="td-section-head">
-          <span>Variables in this plan</span>
-          <span class="td-hint">Union of <code>{{variables}}</code> across the selected cases</span>
-        </div>
-        <div class="var-table" id="planVarTable"></div>
-      </div>
 
-      <div class="td-section" style="margin-top: 24px;">
-        <div class="td-section-head"><span>Run mode</span></div>
-        <div style="padding: 14px 18px;">
-          <label class="plan-case" style="border:none; padding:0;">
-            <input type="checkbox" id="planLoop" onchange="renderPlanLoop()" />
-            <div><div class="pc-name">Run in loop</div>
-              <div class="pc-sub">Run every combination of the selected datasets (cartesian product)</div></div>
-          </label>
-          <div id="planLoopConfig" style="display:none; margin-top: 14px;">
-            <div class="td-hint" style="margin-bottom: 8px;">Loop over these datasets:</div>
-            <div id="planLoopTables"></div>
-            <div id="planLoopCount" style="margin-top: 12px; font-weight: 600; color: var(--purple);"></div>
+    <!-- ===== Plan BUILDER ===== -->
+    <div id="planBuilderPane" style="display:none">
+      <div class="projects-header">
+        <div style="display:flex; align-items:center; gap:14px; min-width:0;">
+          <button class="btn" onclick="closePlanBuilder()"><span data-ico="chevron-left"></span> Back</button>
+          <div class="ds-name-input" style="max-width:280px;">
+            <span class="ds-name-ico" data-ico="clipboard-check"></span>
+            <input id="planNameInput" placeholder="Plan name" spellcheck="false" autocomplete="off" />
           </div>
+        </div>
+        <button class="btn primary" onclick="savePlan()"><span data-ico="save"></span> Save plan</button>
+      </div>
+      <div class="plan-build-tabs">
+        <button class="plan-build-tab active" data-ptab="cases" onclick="planTab('cases')">1 · Test cases</button>
+        <button class="plan-build-tab" data-ptab="data" onclick="planTab('data')">2 · Data set</button>
+      </div>
+      <div class="plan-build-body">
+        <div id="planTabCases">
+          <div class="td-hint" style="padding: 0 4px 12px;">Select the test cases from Projects to include in this plan.</div>
+          <div class="plan-cases" id="planCases"></div>
+        </div>
+        <div id="planTabData" style="display:none; height:100%;">
+          <div class="resolve-hint">Every variable used by the selected cases must be resolved. Pick a value on the left, resolve it on the right.</div>
+          <div class="resolve-split" id="planResolveSplit">
+            <div class="resolve-list" id="planResolveList"></div>
+            <div class="resolve-detail" id="planResolveDetail"></div>
+          </div>
+          <div id="planResolveEmpty" class="var-empty" style="display:none;">No variables to resolve — these cases set everything locally.</div>
         </div>
       </div>
     </div>
@@ -1806,6 +1837,7 @@
         </div>
        </div>
        <div class="modal-foot">
+         <button class="btn danger" id="dsDeleteBtn" onclick="dsDeleteCurrent()" style="display:none"><span data-ico="trash"></span> Delete</button>
          <span class="td-hint">Types: string, number, boolean, list, object (max 2 levels deep).</span>
          <span style="flex:1"></span>
          <button class="btn primary" onclick="saveDataset()"><span data-ico="save"></span> Save</button>
@@ -1819,6 +1851,7 @@
        <div class="confirm-icon" id="confirmIcon" data-ico="trash"></div>
        <div class="confirm-title" id="confirmTitle">Are you sure?</div>
        <div class="confirm-msg" id="confirmMsg"></div>
+       <ul class="confirm-list" id="confirmList"></ul>
        <div class="confirm-actions">
          <button class="btn" id="confirmCancel" onclick="closeConfirm()">Cancel</button>
          <button class="btn danger" id="confirmOk">Delete</button>
@@ -1904,6 +1937,14 @@
       icon.innerHTML = svgIcon(opts.icon || (variant === 'warning' ? 'alert-triangle' : 'trash'));
       document.getElementById('confirmTitle').textContent = opts.title || 'Are you sure?';
       document.getElementById('confirmMsg').textContent = opts.message || '';
+      const listEl = document.getElementById('confirmList');
+      listEl.innerHTML = '';
+      (opts.list || []).forEach(text => {
+        const li = document.createElement('li');
+        li.innerHTML = (opts.listIcon ? svgIcon(opts.listIcon) : '') + '<span></span>';
+        li.querySelector('span').textContent = text;
+        listEl.appendChild(li);
+      });
       const ok = document.getElementById('confirmOk');
       ok.textContent = opts.confirmLabel || 'Confirm';
       ok.className = 'btn ' + (variant === 'warning' ? 'primary' : 'danger');
@@ -2324,6 +2365,9 @@
       document.getElementById('dsFind').classList.remove('open');   // reset find bar
       document.getElementById('dsFindInput').value = '';
       dsFind = { term: '', matches: [], idx: 0 };
+      // Delete only makes sense for an already-saved file.
+      const exists = loadDatasets().some(d => d.id === dsEditing.id);
+      document.getElementById('dsDeleteBtn').style.display = exists ? '' : 'none';
       dsRender();
       document.getElementById('datasetModal').classList.add('open');
       // Jump to the first empty variable so the user lands on the data that needs filling.
@@ -2337,6 +2381,9 @@
       nameInput.focus();
     }
     function closeDatasetModal() { document.getElementById('datasetModal').classList.remove('open'); }
+    function dsDeleteCurrent() {
+      if (dsEditing) deleteDataset(dsEditing.id, () => closeDatasetModal());
+    }
 
     // A YAML line declares a variable with NO value (→ shown red).
     // `key:` / `key: ` / `key: ""` count as empty, UNLESS deeper-indented children follow (an object/array).
@@ -2588,16 +2635,24 @@
       closeDatasetModal();
       renderDatasets();
     }
-    function deleteDataset(id) {
+    function deleteDataset(id, onDone) {
       const ds = loadDatasets().find(d => d.id === id);
       if (!ds) return;
+      const used = plansUsingDataset(ds.name);
+      const msg = used.length
+        ? 'Delete “' + ds.name + '.yaml”? This cannot be undone. It is used by ' +
+          used.length + ' test plan' + (used.length > 1 ? 's' : '') + ', which will fail to run until re-resolved:'
+        : 'Delete “' + ds.name + '.yaml”? This cannot be undone.';
       appConfirm({
         title: 'Delete dataset',
-        message: 'Delete “' + ds.name + '.yaml”? This cannot be undone.',
+        message: msg,
+        list: used.map(p => p.name),
+        listIcon: 'clipboard-check',
         confirmLabel: 'Delete'
       }, () => {
         saveDatasets(loadDatasets().filter(d => d.id !== id));
         renderDatasets();
+        if (onDone) onDone();
       });
     }
 
@@ -2778,46 +2833,86 @@
       return { all: Array.from(all), need, setSomewhere };
     }
 
-    function renderPlanBuilder() {
+    /* ===== Test Plan builder (new flow) ===== */
+    let planBuilder = null;   // { id, name } currently being edited
+    let planSeed = null;      // { records:{'@file':rec}, values:{attr:val} } pre-fill for the resolver
+
+    function showPlanPane(which) {
+      document.getElementById('planListPane').style.display = which === 'list' ? 'flex' : 'none';
+      document.getElementById('planBuilderPane').style.display = which === 'builder' ? 'flex' : 'none';
+    }
+    function newPlan() {
+      planBuilder = { id: 'plan_' + Date.now(), name: '' };
+      planSelected.clear(); planSeed = null;
+      document.getElementById('planNameInput').value = '';
+      showPlanPane('builder'); planTab('cases'); renderPlanCases();
+    }
+    function editPlan(id) {
+      const p = loadPlans().find(x => x.id === id); if (!p) return;
+      planBuilder = { id: p.id, name: p.name };
+      planSelected.clear(); (p.caseIds || []).forEach(cid => planSelected.add(cid));
+      planSeed = planSeedFromValues(p.values || {});
+      document.getElementById('planNameInput').value = p.name;
+      showPlanPane('builder'); planTab('cases'); renderPlanCases();
+    }
+    function closePlanBuilder() { showPlanPane('list'); renderSavedPlans(); }
+
+    // Split a stored {ref:value} map into record bindings (@file) and bare value picks.
+    function planSeedFromValues(values) {
+      const records = {}, vals = {};
+      Object.keys(values).forEach(k => { if (k[0] === '@') records[k] = values[k]; else vals[k] = values[k]; });
+      return { records, values: vals };
+    }
+
+    function planTab(tab) {
+      document.querySelectorAll('.plan-build-tab').forEach(b => b.classList.toggle('active', b.dataset.ptab === tab));
+      document.getElementById('planTabCases').style.display = tab === 'cases' ? '' : 'none';
+      document.getElementById('planTabData').style.display = tab === 'data' ? 'flex' : 'none';
+      if (tab === 'data') openPlanResolve();
+    }
+
+    function renderPlanCases() {
       const list = document.getElementById('planCases');
       const cases = loadStore().sort((a, b) => b.updatedAt - a.updatedAt);
       list.innerHTML = '';
       if (!cases.length) {
         list.innerHTML = '<div class="var-empty">No saved test cases. Create and save one in the editor first.</div>';
-      } else {
-        cases.forEach(c => {
-          const refs = refsInContent(c.content);
-          const row = document.createElement('label');
-          row.className = 'plan-case';
-          row.innerHTML = '<input type="checkbox" /><div class="datafile-info">' +
-            '<div class="pc-name"></div><div class="pc-sub"></div></div>';
-          const cb = row.querySelector('input');
-          cb.checked = planSelected.has(c.id);
-          cb.onchange = () => { cb.checked ? planSelected.add(c.id) : planSelected.delete(c.id); renderPlanVars(); };
-          row.querySelector('.pc-name').textContent = c.name;
-          row.querySelector('.pc-sub').textContent =
-            (refs.length ? refs.join(', ') : 'no variables');
-          list.appendChild(row);
-        });
-      }
-      renderPlanVars();
-    }
-
-    function renderPlanVars() {
-      const table = document.getElementById('planVarTable');
-      const { all, need } = planVariables();
-      table.innerHTML = '';
-      if (!all.length) {
-        table.innerHTML = '<div class="var-empty">Select test cases to see their variables.</div>';
         return;
       }
-      all.forEach(v => {
-        const span = document.createElement('span');
-        span.className = 'plan-var-pill' + (need.indexOf(v) < 0 ? ' set' : '');
-        span.textContent = v + (need.indexOf(v) < 0 ? ' ✓' : '');
-        table.appendChild(span);
+      cases.forEach(c => {
+        const refs = refsInContent(c.content);
+        const row = document.createElement('label');
+        row.className = 'plan-case';
+        row.innerHTML = '<input type="checkbox" /><div class="datafile-info">' +
+          '<div class="pc-name"></div><div class="pc-sub"></div></div>';
+        const cb = row.querySelector('input');
+        cb.checked = planSelected.has(c.id);
+        cb.onchange = () => { cb.checked ? planSelected.add(c.id) : planSelected.delete(c.id); };
+        row.querySelector('.pc-name').textContent = c.name;
+        row.querySelector('.pc-sub').textContent = refs.length ? refs.join(', ') : 'no variables';
+        list.appendChild(row);
       });
-      renderPlanLoop();
+    }
+
+    // Render the resolve master–detail inside the builder's Data set tab.
+    function openPlanResolve() {
+      const { need } = planVariables();
+      const empty = document.getElementById('planResolveEmpty');
+      const split = document.getElementById('planResolveSplit');
+      if (!need.length) {
+        resolveItems = [];
+        split.style.display = 'none'; empty.style.display = '';
+        document.getElementById('planResolveList').innerHTML = '';
+        document.getElementById('planResolveDetail').innerHTML = '';
+        return;
+      }
+      split.style.display = 'flex'; empty.style.display = 'none';
+      resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
+      resolveItems = buildResolveItems(need, planSeed);
+      onResolveChange = () => { planSeed = mergeSeed(); };   // remember picks across tab switches / save
+      const firstUnresolved = resolveItems.findIndex(it => itemStatus(it) !== 'ok');
+      resolveSelected = firstUnresolved >= 0 ? firstUnresolved : 0;
+      renderResolve();
     }
 
     /* ----- Test Plan: loop over datasets (cartesian product) ----- */
@@ -3055,40 +3150,151 @@
       const have = new Set(loadDatasets().map(d => d.name));
       return (plan.tied || []).filter(n => !have.has(n));
     }
+    // Tied datasets that still exist but were edited AFTER this plan was saved (info only).
+    function planOutdatedDatasets(plan) {
+      const byName = new Map(loadDatasets().map(d => [d.name, d]));
+      return (plan.tied || []).filter(n => {
+        const ds = byName.get(n);
+        if (!ds) return false;   // deleted → handled by planMissingDatasets
+        const stamp = (plan.tiedStamps && plan.tiedStamps[n] != null) ? plan.tiedStamps[n] : plan.createdAt;
+        return ds.updatedAt > (stamp || 0);
+      });
+    }
+    // Does a plan's RESOLVED value actually come from this dataset?
+    //   @file record  → the record was bound to this file
+    //   bare value    → this dataset contains the chosen value for that attribute (deep)
+    function planUsesDataset(p, ds) {
+      const vals = p.values;
+      if (vals && Object.keys(vals).length) {
+        return Object.keys(vals).some(k => k[0] === '@'
+          ? ds.name === k.slice(1)
+          : datasetRichRecords(ds).some(rec => valKey(deepGetPath(rec, k)) === valKey(vals[k])));
+      }
+      return (p.tied || []).indexOf(ds.name) >= 0;   // legacy plans without a values map
+    }
+    function plansUsingDataset(name) {
+      const ds = loadDatasets().find(d => d.name === name);
+      if (!ds) return loadPlans().filter(p => (p.tied || []).indexOf(name) >= 0);
+      return loadPlans().filter(p => planUsesDataset(p, ds));
+    }
+
+    // Collect resolved values + the datasets they came from, from the current resolveItems.
+    function collectPlanResolution() {
+      const values = {}, tied = new Set();
+      resolveItems.forEach(it => {
+        if (it.type === 'record') {
+          if (it.chosen != null) { values[it.root] = it.records[it.chosen]; tied.add(it.root.slice(1)); }
+        } else if (it.chosen !== undefined) {
+          values[it.attr] = it.chosen;
+          // Tie EVERY dataset that provides this value, so deleting any of them is flagged.
+          loadDatasets().forEach(ds => {
+            if (datasetRichRecords(ds).some(rec => valKey(deepGetPath(rec, it.attr)) === valKey(it.chosen))) tied.add(ds.name);
+          });
+        }
+      });
+      return { values, tied: Array.from(tied) };
+    }
+
+    function savePlan() {
+      if (!planBuilder) return;
+      const name = document.getElementById('planNameInput').value.trim();
+      if (!name) { appAlert('Name required', 'Give the test plan a name.'); return; }
+      if (!planSelected.size) { appAlert('No test cases', 'Select at least one test case for this plan.'); return; }
+      // Make sure the resolver reflects the current selection, then require full resolution.
+      const { need } = planVariables();
+      if (need.length) {
+        resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
+        resolveItems = buildResolveItems(need, planSeed);   // planSeed holds the user's picks
+        if (unresolvedCount() > 0) {
+          planTab('data');
+          appAlert('Unresolved variables', unresolvedCount() + ' variable(s) still need a value. Resolve them in the Data set tab before saving.');
+          return;
+        }
+      } else {
+        resolveItems = [];
+      }
+      const { values, tied } = collectPlanResolution();
+      // Snapshot each tied dataset's version, so we can flag "updated" later.
+      const tiedStamps = {};
+      loadDatasets().forEach(d => { if (tied.indexOf(d.name) >= 0) tiedStamps[d.name] = d.updatedAt; });
+      const plan = { id: planBuilder.id, name, caseIds: Array.from(planSelected), values, tied, tiedStamps, createdAt: Date.now() };
+      const plans = loadPlans();
+      const idx = plans.findIndex(x => x.id === plan.id);
+      if (idx >= 0) plans[idx] = plan; else plans.push(plan);
+      savePlans(plans);
+      closePlanBuilder();
+    }
+    // When re-validating on save, keep the user's already-picked values as the seed.
+    function mergeSeed() {
+      const records = {}, vals = {};
+      resolveItems.forEach(it => {
+        if (it.type === 'record' && it.chosen != null) records[it.root] = it.records[it.chosen];
+        else if (it.type === 'value' && it.chosen !== undefined) vals[it.attr] = it.chosen;
+      });
+      return { records, values: vals };
+    }
+
     function deletePlan(id) {
-      const p = loadPlans().find(x => x.id === id);
-      if (p && !confirm('Delete plan “' + p.name + '”?')) return;
-      savePlans(loadPlans().filter(x => x.id !== id));
-      renderSavedPlans();
+      const p = loadPlans().find(x => x.id === id); if (!p) return;
+      appConfirm({ title: 'Delete plan', message: 'Delete the test plan “' + p.name + '”?', confirmLabel: 'Delete' }, () => {
+        savePlans(loadPlans().filter(x => x.id !== id));
+        renderSavedPlans();
+      });
     }
     function runSavedPlan(id) {
-      const p = loadPlans().find(x => x.id === id);
-      if (!p) return;
-      const missing = planMissingDatasets(p);
-      if (missing.length && !confirm('This plan uses deleted dataset(s): ' + missing.join(', ') + '.\nThe saved values are still baked in. Run anyway?')) return;
-      runPlanLoopExecute(p.attempts);
+      const p = loadPlans().find(x => x.id === id); if (!p) return;
+      // The plan baked in a snapshot of every value, so it always runs — even if a source
+      // dataset was later deleted or updated. The dot/pill flags that for the user.
+      const cases = loadStore().filter(c => (p.caseIds || []).indexOf(c.id) >= 0);
+      if (!cases.length) { appAlert('No test cases', 'The test cases in this plan no longer exist.'); return; }
+      runPlanExecute(cases, p.values || {});
     }
     function renderSavedPlans() {
       const list = document.getElementById('savedPlansList');
       const plans = loadPlans().sort((a, b) => b.createdAt - a.createdAt);
       list.innerHTML = '';
-      if (!plans.length) { list.innerHTML = '<div class="var-empty">No saved plans yet. Configure a loop and Save plan.</div>'; return; }
+      if (!plans.length) {
+        list.innerHTML = '<div class="projects-empty"><div class="big">' + svgIcon('clipboard-check') +
+          '</div><div class="sub">No test plans yet. Create one to run cases with pre-resolved data.</div></div>';
+        return;
+      }
       plans.forEach(p => {
         const missing = planMissingDatasets(p);
-        const row = document.createElement('div');
-        row.className = 'datafile-row';
-        row.innerHTML =
-          '<div class="datafile-icon">' + (missing.length ? '<span class="plan-dot" title="' + escapeHtml('Missing dataset: ' + missing.join(', ')) + '"></span>' : svgIcon('clipboard-check')) + '</div>' +
-          '<div class="datafile-info"><div class="datafile-name"></div><div class="datafile-sub"></div></div>' +
-          '<div class="datafile-actions"><button class="icon-btn" data-act="run">Run</button>' +
-          '<button class="icon-btn danger" data-act="del">' + svgIcon('trash') + '</button></div>';
-        row.querySelector('.datafile-name').textContent = p.name;
-        row.querySelector('.datafile-sub').textContent = p.attempts.length + ' attempts · ' +
-          (p.tied || []).join(', ') + (missing.length ? '  — missing: ' + missing.join(', ') : '');
-        if (missing.length) row.querySelector('.datafile-sub').style.color = '#dc2626';
-        row.querySelector('[data-act="run"]').onclick = () => runSavedPlan(p.id);
-        row.querySelector('[data-act="del"]').onclick = () => deletePlan(p.id);
-        list.appendChild(row);
+        const outdated = planOutdatedDatasets(p);
+        const caseN = (p.caseIds || []).length;
+        const card = document.createElement('div');
+        card.className = 'ds-card';
+        card.onclick = () => editPlan(p.id);
+        // Deleted (red) takes priority over updated (yellow). When both, show red + combined note.
+        card.innerHTML =
+          '<div class="ds-card-head">' +
+            '<div class="ds-card-icon">' + svgIcon('clipboard-check') + '</div>' +
+            '<div class="ds-card-name"></div>' +
+            (missing.length ? '<span class="ds-dot" title=""></span>'
+              : outdated.length ? '<span class="plan-updated-pill" title="">Updated</span>' : '') +
+          '</div>' +
+          '<div class="ds-card-meta"></div>' +
+          '<div class="ds-card-foot">' +
+            '<button class="btn primary plan-run-btn" data-act="run"><span data-ico="play" data-ico-fill="1"></span> Run</button>' +
+            '<button class="ds-card-del" data-act="del" title="Delete">' + svgIcon('trash') + '</button>' +
+          '</div>';
+        card.querySelector('.ds-card-name').textContent = p.name;
+        card.querySelector('.ds-card-name').title = p.name;
+        card.querySelector('.ds-card-meta').textContent = caseN + (caseN === 1 ? ' test case' : ' test cases') +
+          (p.tied && p.tied.length ? ' · ' + p.tied.join(', ') : '');
+        // Status is shown via the dot/pill hover only — the plan always runs on its saved snapshot.
+        if (missing.length) {
+          card.querySelector('.ds-dot').title = outdated.length
+            ? 'Some files were deleted (' + missing.join(', ') + ') and some were updated (' + outdated.join(', ') + '). Runs on the saved values — open to re-resolve.'
+            : 'Deleted: ' + missing.join(', ') + '. Runs on the saved values — open to re-resolve.';
+        } else if (outdated.length) {
+          card.querySelector('.plan-updated-pill').title =
+            outdated.join(', ') + ' was updated after this plan was saved. Runs on the saved values — open to re-resolve.';
+        }
+        hydrateIcons(card);
+        card.querySelector('[data-act="run"]').onclick = (e) => { e.stopPropagation(); runSavedPlan(p.id); };
+        card.querySelector('[data-act="del"]').onclick = (e) => { e.stopPropagation(); deletePlan(p.id); };
+        list.appendChild(card);
       });
     }
 
@@ -3113,7 +3319,7 @@
         const used = refsInContent(c.content);
         if (used.length) {
           appendLog('<span class="log-data">Data · ' + used.map(r =>
-            '<b>' + escapeHtml(r) + '</b>=' + escapeHtml(displayVal(env.vars[r]))).join('   ') + '</span>', '');
+            '<b>' + escapeHtml(r) + '</b>=' + escapeHtml(displayVal(resolveRef(r, env)))).join('   ') + '</span>', '');
         }
 
         for (let i = 0; i < steps.length; i++) {
@@ -3164,11 +3370,14 @@
       return out;
     }
 
-    function openResolveModal(unresolved, onRun) {
-      resolveOnRun = onRun || (ov => runTest(null, null, ov));
-      resolveItems = [];
+    // Where the resolve master–detail renders. Defaults to the modal; the plan builder retargets it.
+    let resolveEls = { list: 'resolveList', detail: 'resolveDetail', foot: 'resolveFootStatus', run: 'resolveRunBtn' };
+    let onResolveChange = null;   // optional callback(unresolvedCount) for embedded resolvers
 
-      // Group @file.* refs by file → pick ONE record from that file so every @file.* follows.
+    // Build the resolve item model from a list of unresolved refs (@file.* grouped; bare = value).
+    // `seed` (optional) pre-fills chosen values: { records:{'@file':record}, values:{attr:value} }.
+    function buildResolveItems(unresolved, seed) {
+      const items = [];
       const fileOrder = [], seenFile = new Set();
       unresolved.forEach(r => {
         if (r[0] === '@') {
@@ -3184,18 +3393,28 @@
           .map(r => r.slice(1).split('.').slice(1).join('.'))
           .filter(s => s.length);
         const item = { type: 'record', root: '@' + file, ds, records, subs, chosen: null };
-        if (records.length === 1) item.chosen = 0;   // single record -> no conflict, auto-pick
-        resolveItems.push(item);
+        if (seed && seed.records && seed.records['@' + file] !== undefined) {
+          const k = valKey(seed.records['@' + file]);
+          const i = records.findIndex(rec => valKey(rec) === k);
+          if (i >= 0) item.chosen = i;
+        } else if (records.length === 1) item.chosen = 0;
+        items.push(item);
       });
-
-      // Bare refs → gather candidate values from ALL datasets (deep). Pick one; type if none.
       unresolved.filter(r => r[0] !== '@').forEach(attr => {
         const distinct = distinctCandidates(candidatesForAttr(attr));
         const item = { type: 'value', attr, distinct, chosen: undefined };
-        if (distinct.length === 1) item.chosen = distinct[0].value;   // one match -> auto, no conflict
-        resolveItems.push(item);
+        if (seed && seed.values && seed.values[attr] !== undefined) item.chosen = seed.values[attr];
+        else if (distinct.length === 1) item.chosen = distinct[0].value;
+        items.push(item);
       });
+      return items;
+    }
 
+    function openResolveModal(unresolved, onRun) {
+      resolveOnRun = onRun || (ov => runTest(null, null, ov));
+      resolveEls = { list: 'resolveList', detail: 'resolveDetail', foot: 'resolveFootStatus', run: 'resolveRunBtn' };
+      onResolveChange = null;
+      resolveItems = buildResolveItems(unresolved);
       // Open focused on the first unresolved variable (conflict/manual), else the first.
       const firstUnresolved = resolveItems.findIndex(it => itemStatus(it) !== 'ok');
       resolveSelected = firstUnresolved >= 0 ? firstUnresolved : 0;
@@ -3227,8 +3446,9 @@
 
     // Master–detail render: left rail of variables, right pane resolves the selected one.
     function renderResolve() {
-      const list = document.getElementById('resolveList');
-      const detail = document.getElementById('resolveDetail');
+      const list = document.getElementById(resolveEls.list);
+      const detail = document.getElementById(resolveEls.detail);
+      if (!list || !detail) return;
       list.innerHTML = '';
 
       // Display order: unresolved first (stable), then resolved (stable).
@@ -3251,12 +3471,16 @@
       detail.innerHTML = '';
       if (sel) detail.appendChild(sel.type === 'record' ? renderRecordDetail(sel) : renderValueDetail(sel));
 
-      // Footer status + Run gating.
+      // Footer status + Run gating (if present), plus an optional change callback.
       const n = unresolvedCount();
-      const foot = document.getElementById('resolveFootStatus');
-      foot.classList.toggle('ready', n === 0);
-      foot.textContent = n === 0 ? 'Ready to run' : (n + (n === 1 ? ' conflict blocks this run' : ' conflicts block this run'));
-      document.getElementById('resolveRunBtn').disabled = n > 0;
+      const foot = resolveEls.foot && document.getElementById(resolveEls.foot);
+      if (foot) {
+        foot.classList.toggle('ready', n === 0);
+        foot.textContent = n === 0 ? 'Ready to run' : (n + (n === 1 ? ' conflict blocks this run' : ' conflicts block this run'));
+      }
+      const runBtn = resolveEls.run && document.getElementById(resolveEls.run);
+      if (runBtn) runBtn.disabled = n > 0;
+      if (onResolveChange) onResolveChange(n);
     }
 
     function detailHead(title, desc) {
@@ -4001,7 +4225,7 @@
       document.getElementById('navPlans').classList.toggle('active', name === 'plans');
       if (name === 'projects') renderProjects();
       if (name === 'testdata') { rebuildVariables(); renderVariables(); renderDataFiles(); renderDatasets(); }
-      if (name === 'plans') { renderSavedPlans(); renderPlanBuilder(); }
+      if (name === 'plans') { showPlanPane('list'); renderSavedPlans(); }
       if (name === 'editor') input.focus();
     }
 
