@@ -952,6 +952,7 @@
       width: 7px; height: 7px; border-radius: 50%;
       background: var(--red); flex: none;
     }
+    .ds-dot.updated { background: var(--orange); }
     .ds-card-foot {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       margin-top: 2px; padding-top: 8px; border-top: 1px solid var(--border);
@@ -3271,7 +3272,7 @@
             '<div class="ds-card-icon">' + svgIcon('clipboard-check') + '</div>' +
             '<div class="ds-card-name"></div>' +
             (missing.length ? '<span class="ds-dot" title=""></span>'
-              : outdated.length ? '<span class="plan-updated-pill" title="">Updated</span>' : '') +
+              : outdated.length ? '<span class="ds-dot updated" title=""></span>' : '') +
           '</div>' +
           '<div class="ds-card-meta"></div>' +
           '<div class="ds-card-foot">' +
@@ -3288,8 +3289,8 @@
             ? 'Some files were deleted (' + missing.join(', ') + ') and some were updated (' + outdated.join(', ') + '). Runs on the saved values — open to re-resolve.'
             : 'Deleted: ' + missing.join(', ') + '. Runs on the saved values — open to re-resolve.';
         } else if (outdated.length) {
-          card.querySelector('.plan-updated-pill').title =
-            outdated.join(', ') + ' was updated after this plan was saved. Runs on the saved values — open to re-resolve.';
+          card.querySelector('.ds-dot.updated').title = 'Some YAML files were updated after this plan was saved (' +
+            outdated.join(', ') + '). Runs on the saved values — open to re-resolve.';
         }
         hydrateIcons(card);
         card.querySelector('[data-act="run"]').onclick = (e) => { e.stopPropagation(); runSavedPlan(p.id); };
@@ -3352,12 +3353,14 @@
     let resolveSelected = 0;      // index into resolveItems shown in the detail pane
 
     // All candidate values for a value-ref across datasets: [{dataset, value, key}]
+    // A list-valued attribute means "pick one of these" → expand it into separate options.
+    function expandCandidateValues(v) { return Array.isArray(v) ? v : [v]; }
     function candidatesForAttr(attr) {
       const out = [];
       loadDatasets().forEach(ds => {
         datasetRichRecords(ds).forEach(rec => {
           const v = deepGetPath(rec, attr);
-          if (v !== undefined) out.push({ dataset: ds.name, value: v });
+          if (v !== undefined) expandCandidateValues(v).forEach(x => out.push({ dataset: ds.name, value: x }));
         });
       });
       return out;
@@ -3498,7 +3501,9 @@
         const vals = [], seen = new Set();
         datasetRichRecords(ds).forEach(rec => {
           const v = deepGetPath(rec, attr);
-          if (v !== undefined) { const k = valKey(v); if (!seen.has(k)) { seen.add(k); vals.push(v); } }
+          if (v !== undefined) expandCandidateValues(v).forEach(x => {
+            const k = valKey(x); if (!seen.has(k)) { seen.add(k); vals.push(x); }
+          });
         });
         if (vals.length) out.push({ file: ds.name, values: vals });
       });
