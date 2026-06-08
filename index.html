@@ -1331,6 +1331,7 @@
 
     .kw { color: var(--code-purple); font-weight: 500; }
     .fn { color: #0369a1; font-weight: 500; }
+    .set-invalid { color: #dc2626; background: #fef2f2; border-radius: 3px; text-decoration: wavy underline #dc2626; }
 
     /* {{variable}} references in the editor */
     .var-ref {
@@ -1881,7 +1882,7 @@
        </div>
        <div class="modal-foot">
          <button class="btn danger" id="dsDeleteBtn" onclick="dsDeleteCurrent()" style="display:none"><span data-ico="trash"></span> Delete</button>
-         <span class="td-hint">Types: string, number, boolean, list, object (max 2 levels deep).</span>
+         <span class="td-hint">Types: string, number, boolean, list, object (nest up to 2 levels — e.g. <code>rider.address.line1</code>).</span>
          <span style="flex:1"></span>
          <button class="btn primary" onclick="saveDataset()"><span data-ico="save"></span> Save</button>
        </div>
@@ -2121,6 +2122,12 @@
         const m = line.match(KW_RE);
         if (m) {
           const rest = line.slice(m[0].length);
+          // Flag a SET whose object/array literal is malformed.
+          const sm = line.match(SET_RE);
+          if (sm && inferType(sm[2]).invalid) {
+            const eq = line.indexOf('=');
+            return escapeHtml(line.slice(0, eq + 1)) + '<span class="set-invalid">' + escapeHtml(line.slice(eq + 1)) + '</span>';
+          }
           return m[1] + '<span class="kw">' + escapeHtml(m[2]) + '</span>' + hlExprFns(hlVarRefs(escapeHtml(rest)));
         }
         return hlExprFns(hlVarRefs(escapeHtml(line))) || ' ';
@@ -2164,8 +2171,11 @@
       paymentApi:     { method: 'POST', path: '/payments/charge', status: 200, response: { txn_id: 'TXN-99210', state: 'captured', amount: 499 } },
     };
 
-    // Match the SET expression functions: screen() | ai("hint") | api.name("path")
-    const EXPR_RE = /^(screen|ai)\s*\(\s*(?:(["'])([\s\S]*?)\2)?\s*\)$|^api\.([A-Za-z_$][\w$]*)\s*\(\s*(["'])([\s\S]*?)\5\s*\)$/;
+    // Match the SET expression functions: screen() | ai("hint") | api.name("path").
+    // The string argument allows escaped quotes via `\\.` so a \" doesn't end it early.
+    const EXPR_RE = /^(screen|ai)\s*\(\s*(?:(["'])((?:\\.|[^\\])*?)\2)?\s*\)$|^api\.([A-Za-z_$][\w$]*)\s*\(\s*(["'])((?:\\.|[^\\])*?)\5\s*\)$/;
+    // Unescape \" \' and \\ inside a captured string literal.
+    function unescapeStr(s) { return (s || '').replace(/\\(["'\\])/g, '$1'); }
 
     // Infer a value's data type from its raw text.
     // Literals: string, number, boolean, null, object, array.
@@ -2174,24 +2184,24 @@
       const v = raw.trim();
       const ex = v.match(EXPR_RE);
       if (ex) {
-        if (ex[1]) return { type: ex[1], value: v, expr: { kind: ex[1], hint: ex[3] || '' } };
-        return { type: 'api', value: v, expr: { kind: 'api', api: ex[4], path: ex[6] } };
+        if (ex[1]) return { type: ex[1], value: v, expr: { kind: ex[1], hint: unescapeStr(ex[3]) } };
+        return { type: 'api', value: v, expr: { kind: 'api', api: ex[4], path: unescapeStr(ex[6]) } };
       }
       if (v === 'null') return { type: 'null', value: 'null' };
       if (v === 'true' || v === 'false') return { type: 'boolean', value: v };
       if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(v)) return { type: 'number', value: v };
       if (v[0] === '[') {
         try { return { type: 'array', value: JSON.stringify(JSON.parse(v)) }; }
-        catch (e) { return { type: 'array', value: v }; }
+        catch (e) { return { type: 'array', value: v, invalid: true }; }   // malformed array
       }
       if (v[0] === '{') {
         try { return { type: 'object', value: JSON.stringify(JSON.parse(v)) }; }
-        catch (e) { return { type: 'object', value: v }; }
+        catch (e) { return { type: 'object', value: v, invalid: true }; }  // malformed object
       }
-      // Quoted string → strip the quotes; otherwise treat the bare text as a string
-      if ((v[0] === '"' && v[v.length - 1] === '"') ||
-          (v[0] === "'" && v[v.length - 1] === "'")) {
-        return { type: 'string', value: v.slice(1, -1) };
+      // Quoted string → strip the quotes and unescape; otherwise treat the bare text as a string
+      if (v.length >= 2 && ((v[0] === '"' && v[v.length - 1] === '"') ||
+          (v[0] === "'" && v[v.length - 1] === "'"))) {
+        return { type: 'string', value: unescapeStr(v.slice(1, -1)) };
       }
       return { type: 'string', value: v };
     }
@@ -2205,6 +2215,16 @@
         map.set(m[1], { name: m[1], ...inferType(m[2]) });
       });
       return map;
+    }
+    // First SET line with a malformed object/array literal (or null if none).
+    function firstInvalidSet(content) {
+      for (const line of (content || '').split('\n')) {
+        const m = line.match(SET_RE);
+        if (!m) continue;
+        const info = inferType(m[2]);
+        if (info.invalid) return { name: m[1], type: info.type };
+      }
+      return null;
     }
 
     // ---- Evaluate a SET value at run time ----
@@ -2355,7 +2375,7 @@
 
     const YAML_TEMPLATE =
       '# Test data — one variable per line.\n' +
-      '# Types: string, number, boolean, list, object (max 2 levels deep).\n' +
+      '# Types: string, number, boolean, list, object (nest up to 2 levels, e.g. rider.address.line1).\n' +
       '\n' +
       'city: Mumbai\n' +
       'count: 1\n' +
@@ -2589,12 +2609,17 @@
         const keys = Object.keys(v);
         if (!keys.length) return pad + '{}\n';
         return keys.map(k => {
+          const key = yamlKey(k);
           const val = v[k];
-          if (val !== null && typeof val === 'object') return pad + k + ':\n' + objToYaml(val, indent + 1);
-          return pad + k + ': ' + yamlEmit(val) + '\n';
+          if (val !== null && typeof val === 'object') return pad + key + ':\n' + objToYaml(val, indent + 1);
+          return pad + key + ': ' + yamlEmit(val) + '\n';
         }).join('');
       }
       return pad + yamlEmit(v) + '\n';
+    }
+    // Quote a key on output if it has characters that would confuse the parser.
+    function yamlKey(k) {
+      return /^[A-Za-z0-9_$][\w$.-]*$/.test(k) ? k : '"' + String(k).replace(/"/g, '\\"') + '"';
     }
     function yamlEmit(v) {
       if (v === null) return 'null';
@@ -2633,6 +2658,17 @@
       if (v !== null && typeof v === 'object') return 1 + Object.values(v).reduce((m, x) => Math.max(m, objectDepth(x)), 0);
       return 0;
     }
+    // The longest dotted key path under a value (e.g. profile.address.line1) — for clear errors.
+    function deepestPath(v) {
+      if (v === null || typeof v !== 'object' || Array.isArray(v)) return '';
+      let best = '';
+      Object.keys(v).forEach(k => {
+        const sub = deepestPath(v[k]);
+        const cand = sub ? k + '.' + sub : k;
+        if (!best || cand.split('.').length > best.split('.').length) best = cand;
+      });
+      return best;
+    }
 
     function dsImportFile() { document.getElementById('dsFileInput').click(); }
     document.getElementById('dsFileInput').addEventListener('change', function () {
@@ -2667,12 +2703,16 @@
       let model;
       try { model = yamlToModel(yaml); }
       catch (e) { appAlert('Invalid YAML', 'Could not parse the file: ' + e.message); return; }
-      // Enforce 2-level object nesting maximum across every field of every record.
+      // A field may nest objects at most 2 levels — i.e. a reference up to name.a.b (3 segments).
       for (const rec of modelToRecords(model)) {
         for (const col of model.columns) {
           if (col === 'key') continue;
-          if (objectDepth(tryParseJSON(rec[col])) > 2) {
-            appAlert('Too deeply nested', '“' + col + '” nests objects more than 2 levels deep. Flatten it to at most 2 levels.');
+          const val = tryParseJSON(rec[col]);
+          if (objectDepth(val) > 2) {
+            const path = col + (deepestPath(val) ? '.' + deepestPath(val) : '');
+            appAlert('Too deeply nested',
+              '“' + path + '” is nested too deep. A field can nest objects at most 2 levels — ' +
+              'i.e. you can reference up to “' + col + '.a.b”. Flatten “' + col + '” so no path is longer than that.');
             return;
           }
         }
@@ -3362,6 +3402,12 @@
       for (const c of cases) {
         const steps = c.content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
         appendLog('▸ <b>' + escapeHtml(c.name) + '</b> · ' + steps.length + ' step' + (steps.length > 1 ? 's' : ''), 'info');
+
+        const bad = firstInvalidSet(c.content);
+        if (bad) {
+          appendLog('✗ ' + escapeHtml(c.name) + ' failed · ' + bad.name + ' is not valid ' + bad.type + ' (malformed JSON)', 'error');
+          continue;   // this case fails; move on
+        }
 
         // env: plan-resolved values as base, the case's own SET wins.
         const env = { vars: {}, datasets: loadDatasets(), rowMap: {} };
@@ -4595,9 +4641,67 @@
     }
     function isKeyVal(s) { return /^[^:\s][^:]*:(\s|$)/.test(s); }
 
+    // Pull YAML block scalars (key: | / key: >) out before tokenizing, replacing each with a
+    // placeholder. `|` keeps newlines; `>` folds lines into one (blank line → newline).
+    function extractBlockScalars(content) {
+      const lines = content.replace(/\t/g, '  ').split('\n');
+      const out = [], blocks = new Map();
+      let n = 0;
+      for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match(/^(\s*)([^:#\s][^:]*):\s*([|>])([+-]?)\s*$/);
+        if (!m) { out.push(lines[i]); continue; }
+        const baseIndent = m[1].length, style = m[3], chomp = m[4];
+        const body = []; let contentIndent = null, j = i + 1;
+        while (j < lines.length) {
+          if (lines[j].trim() === '') { body.push(''); j++; continue; }
+          const ind = lines[j].match(/^ */)[0].length;
+          if (ind <= baseIndent) break;
+          if (contentIndent === null) contentIndent = ind;
+          body.push(lines[j].slice(contentIndent));
+          j++;
+        }
+        while (body.length && body[body.length - 1] === '') body.pop();   // drop trailing blanks
+        let val;
+        if (style === '|') val = body.join('\n');
+        else {                                  // folded: blank → newline, else join with space
+          val = '';
+          body.forEach(line => { val += line === '' ? '\n' : (val && !val.endsWith('\n') ? ' ' : '') + line; });
+        }
+        if (chomp !== '-') val += '\n';         // clip/keep → one trailing newline
+        const ph = 'blk' + (n++) + '';
+        blocks.set(ph, val);
+        out.push(m[1] + m[2] + ': ' + ph);
+        i = j - 1;
+      }
+      return { text: out.join('\n'), blocks };
+    }
+    function restoreBlocks(v, blocks) {
+      if (typeof v === 'string') return blocks.has(v) ? blocks.get(v) : v;
+      if (Array.isArray(v)) return v.map(x => restoreBlocks(x, blocks));
+      if (v && typeof v === 'object') { const o = {}; for (const k in v) o[k] = restoreBlocks(v[k], blocks); return o; }
+      return v;
+    }
+
+    // Split a "key: value" line, honoring a quoted key ("content-type": …) so its quotes and any
+    // inner colon are handled. Returns [unquotedKey, value] or null.
+    function splitKeyVal(t) {
+      if (t[0] === '"' || t[0] === "'") {
+        const q = t[0]; let i = 1;
+        while (i < t.length && t[i] !== q) { if (t[i] === '\\') i++; i++; }
+        if (i < t.length) {
+          const rest = t.slice(i + 1).replace(/^\s*:?\s*/, '');
+          return [unescapeStr(t.slice(1, i)), rest];
+        }
+      }
+      const ci = t.indexOf(':');
+      if (ci === -1) return null;
+      return [t.slice(0, ci).trim(), t.slice(ci + 1).trim()];
+    }
+
     function parseYaml(content) {
+      const extracted = extractBlockScalars(content || '');
       const rows = [];
-      (content || '').replace(/\t/g, '  ').split('\n').forEach(l => {
+      extracted.text.replace(/\t/g, '  ').split('\n').forEach(l => {
         if (!l.trim() || l.trim().startsWith('#')) return;
         rows.push({ indent: l.match(/^ */)[0].length, text: l.trim() });
       });
@@ -4616,14 +4720,12 @@
             } else if (isKeyVal(after)) {
               // list item that is a map: first key on the dash line, siblings indented further
               const obj = {};
-              const ci = after.indexOf(':');
-              const k = after.slice(0, ci).trim(), v = after.slice(ci + 1).trim();
+              const [k, v] = splitKeyVal(after);
               pos++;
               obj[k] = v === '' ? (pos < rows.length && rows[pos].indent > indent + 1 ? node(rows[pos].indent) : '') : yamlScalar(v);
               while (pos < rows.length && rows[pos].indent === indent + 2 &&
                      !rows[pos].text.startsWith('- ') && isKeyVal(rows[pos].text)) {
-                const t = rows[pos].text, c2 = t.indexOf(':');
-                const k2 = t.slice(0, c2).trim(), v2 = t.slice(c2 + 1).trim();
+                const [k2, v2] = splitKeyVal(rows[pos].text);
                 pos++;
                 obj[k2] = v2 === '' ? (pos < rows.length && rows[pos].indent > indent + 2 ? node(rows[pos].indent) : '') : yamlScalar(v2);
               }
@@ -4638,9 +4740,9 @@
         // Map
         const obj = {};
         while (pos < rows.length && rows[pos].indent === indent && !rows[pos].text.startsWith('- ')) {
-          const t = rows[pos].text, ci = t.indexOf(':');
-          if (ci === -1) { pos++; continue; }
-          const key = t.slice(0, ci).trim(), val = t.slice(ci + 1).trim();
+          const kv = splitKeyVal(rows[pos].text);
+          if (!kv) { pos++; continue; }
+          const key = kv[0], val = kv[1];
           pos++;
           if (val === '') {
             obj[key] = (pos < rows.length && rows[pos].indent > indent) ? node(rows[pos].indent) : '';
@@ -4650,7 +4752,8 @@
         }
         return obj;
       }
-      return node(rows.length ? rows[0].indent : 0) || {};
+      const result = node(rows.length ? rows[0].indent : 0) || {};
+      return extracted.blocks.size ? restoreBlocks(result, extracted.blocks) : result;
     }
 
     // A value counts as resolved if it's a non-blank scalar, or a non-empty array/object
@@ -4996,7 +5099,17 @@
         const setM = steps[i].match(SET_RE);
         if (setM) {
           const name = setM[1];
-          const newV = setValueOf({ name, ...inferType(setM[2]) });
+          const info = { name, ...inferType(setM[2]) };
+          if (info.invalid) {   // malformed object/array literal → fail the run
+            appendLog(
+              '<span class="log-idx">' + (i + 1) + '</span>' +
+              '<span class="log-cmd">SET</span> ' + escapeHtml(name) + ' = ' + escapeHtml(setM[2]) +
+              '<span class="log-fail">✗</span>', 'step');
+            appendLog('Run failed · ' + name + ' is not valid ' + info.type + ' (malformed JSON)', 'error');
+            setRunning(false); isRunning = false;
+            return;
+          }
+          const newV = setValueOf(info);
           const had = Object.prototype.hasOwnProperty.call(liveVars, name);
           const oldV = liveVars[name];
           liveVars[name] = newV;
