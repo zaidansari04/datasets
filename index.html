@@ -363,8 +363,10 @@
     .type-attr { background: #ecfeff; color: #0e7490; }
 
     /* Resolve-missing-data modal */
-    .resolve-body { padding: 18px 20px; overflow: auto; }
-    .resolve-hint { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+    /* Resolve modal: fixed size, content scrolls within. */
+    #resolveModal .modal { height: min(640px, 86vh); }
+    .resolve-body { padding: 18px 20px; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .resolve-hint { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; flex: none; }
     .resolve-field { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
     .resolve-field label {
       width: 130px; flex-shrink: 0;
@@ -444,7 +446,7 @@
     .resolve-table tbody tr.picked .rt-rownum { color: var(--purple); font-weight: 600; }
 
     /* Conflict-aware resolve: master–detail layout */
-    .resolve-split { display: flex; gap: 18px; min-height: 320px; max-height: 60vh; }
+    .resolve-split { display: flex; gap: 18px; flex: 1; min-height: 0; }
     .resolve-list {
       width: 230px; flex: none; overflow-y: auto;
       display: flex; flex-direction: column; gap: 4px;
@@ -478,6 +480,49 @@
     .rv-manual input { flex: 1; height: 40px; padding: 0 12px; border: 1px solid var(--border-strong);
       border-radius: 10px; font-family: var(--mono); font-size: 13.5px; box-shadow: var(--shadow-sm); }
     .rv-manual input:focus { border-color: var(--purple); outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,0.12); }
+    .rv-manual-label { font-size: 12px; color: var(--text-faint); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px; }
+    /* Pin the custom-value entry to the bottom of the (scrolling) detail pane. */
+    .rv-manual-wrap {
+      position: sticky; bottom: 0; z-index: 2;
+      background: #fff; padding: 12px 2px 2px; margin-top: 8px;
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -8px 12px -8px rgba(16,24,40,0.12);
+    }
+
+    /* Value resolver: file cards (2 per row) + file search */
+    .rv-file-search {
+      position: sticky; top: 0; z-index: 2;
+      width: 100%; height: 38px; padding: 0 12px; margin-bottom: 12px;
+      border: 1px solid var(--border-strong); border-radius: 10px;
+      font-family: var(--sans); font-size: 14px; outline: none; box-shadow: var(--shadow-sm);
+    }
+    .rv-file-search:focus { border-color: var(--purple); }
+    .rv-file-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+    .rv-file-card {
+      border: 1px solid var(--border-strong); border-radius: 12px;
+      padding: 12px; background: #fff; box-shadow: var(--shadow-sm);
+      display: flex; flex-direction: column; gap: 10px; min-width: 0;
+    }
+    .rv-file-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .rv-file-ico {
+      width: 26px; height: 26px; flex: none; border-radius: 7px;
+      background: var(--purple-soft); color: var(--purple);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rv-file-ico .ico { width: 15px; height: 15px; }
+    .rv-file-label {
+      font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .rv-file-vals { display: flex; flex-direction: column; gap: 6px; }
+    .rv-file-vals .rv-opt { font-size: 12.5px; padding: 6px 10px; width: 100%; text-align: left; }
+    /* Object values shown as a key:value tree inside the option card */
+    .rv-opt-tree { display: block; padding: 9px 11px !important; }
+    .rv-opt-tree .rd-tree { font-size: 12px; }
+    .rv-opt-tree.sel .rd-key { color: #fff; }
+    .rv-opt-tree.sel .rd-colon, .rv-opt-tree.sel .rd-leaf { color: rgba(255,255,255,0.92); }
+    .rv-file-empty { grid-column: 1 / -1; font-size: 13px; color: var(--text-faint); padding: 12px 0; }
     .rv-edit { height: 40px; font-size: 14px; }
     .resolve-foot-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
     .resolve-foot-status::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); flex: none; }
@@ -1132,6 +1177,46 @@
       min-width: 0;
     }
 
+    /* Live variable drawer (right side of the editor) */
+    .ref-drawer {
+      width: 300px; flex: none;
+      display: none; flex-direction: column;
+      border-left: 1px solid var(--border);
+      background: var(--bg-soft);
+      font-family: var(--sans);
+    }
+    .ref-drawer.open { display: flex; }
+    .ref-drawer-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 700; color: var(--text);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .ref-drawer-head [data-ico] { color: var(--purple); display: inline-flex; }
+    .ref-drawer-head .ico { width: 16px; height: 16px; }
+    .ref-drawer-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .rd-empty { font-size: 12.5px; color: var(--text-faint); padding: 16px 6px; line-height: 1.5; }
+    .rd-var {
+      border: 1px solid var(--border); border-radius: 10px; background: #fff;
+      padding: 10px 11px; box-shadow: var(--shadow-sm);
+    }
+    .rd-var.sel { border-color: var(--purple-light); box-shadow: 0 0 0 2px rgba(124,58,237,0.12); }
+    .rd-var-name { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--purple); margin-bottom: 7px; }
+    .rd-path-parent { color: var(--text-faint); font-weight: 600; }
+    .rd-set { font-family: var(--mono); font-size: 12px; color: var(--text); margin-bottom: 6px; }
+    .rd-set .rd-src { color: var(--text-faint); }
+    .rd-val { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 3px 0; min-width: 0; }
+    .rd-v { font-family: var(--mono); font-size: 12.5px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rd-file { flex: none; font-size: 10px; color: var(--text-faint); }
+    .rd-more { font-size: 11px; color: var(--text-faint); padding-top: 4px; }
+    .rd-file-head { font-size: 10px; color: var(--text-faint); margin: 5px 0 1px; }
+    .rd-tree { font-family: var(--mono); font-size: 12px; margin: 1px 0 2px; padding-left: 2px; }
+    .rd-node { line-height: 1.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rd-key { color: var(--purple); font-weight: 600; }
+    .rd-colon { color: var(--text-faint); margin-right: 5px; }
+    .rd-leaf { color: var(--text); }
+
     .code-layer,
     .code-input {
       margin: 0;
@@ -1317,6 +1402,9 @@
     .log-fail { color: #dc2626; font-weight: 600; margin-left: 8px; }
     .log-data { color: var(--text-muted); }
     .log-data b { color: var(--text); font-weight: 600; }
+    .log-old { color: var(--text-faint); text-decoration: line-through; }
+    .log-arrow { color: var(--text-faint); }
+    .log-new { color: var(--purple); font-weight: 600; }
 
     /* Running state */
     .rec-dot.running { animation: pulse 0.9s ease-in-out infinite; }
@@ -1476,6 +1564,10 @@
             wrap="off"
             placeholder="Type your test commands here…"></textarea>
           <div class="var-suggest" id="varSuggest"></div>
+        </div>
+        <div class="ref-drawer" id="refDrawer">
+          <div class="ref-drawer-head"><span data-ico="database"></span><span id="refDrawerTitle">Variables</span></div>
+          <div class="ref-drawer-body" id="refDrawerBody"></div>
         </div>
       </div>
 
@@ -1913,7 +2005,7 @@
           try { if (getPath(JSON.parse(info.value), segs.slice(1)) !== undefined) return true; } catch (e) {}
         }
       }
-      return false;
+      return datasetsHavePath(ref);                           // bare attr found in ANY dataset (any depth)
     }
 
     // Wrap {{ var }} / {{ @file.path }} references (operates on already-escaped text).
@@ -1970,9 +2062,10 @@
       syncScroll();
     }
 
-    input.addEventListener('input', () => { rebuildVariables(); update(); markDirty(true); renderVariables(); updateSuggest(); });
+    input.addEventListener('input', () => { rebuildVariables(); update(); markDirty(true); renderVariables(); updateSuggest(); updateRefDrawer(); });
     input.addEventListener('scroll', () => { syncScroll(); if (varSuggest.classList.contains('open')) renderSuggest(); });
-    input.addEventListener('click', updateSuggest);
+    input.addEventListener('click', () => { updateSuggest(); updateRefDrawer(); });
+    input.addEventListener('keyup', e => { if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)) updateRefDrawer(); });
     input.addEventListener('blur', () => setTimeout(closeSuggest, 120));
 
     /* ---------- SET command → variables ---------- */
@@ -2179,12 +2272,29 @@
     const YAML_TEMPLATE =
       '# Test data — one variable per line.\n' +
       '# Types: string, number, boolean, list, object (max 2 levels deep).\n' +
+      '\n' +
       'city: Mumbai\n' +
       'count: 1\n' +
       'active: true\n' +
+      '\n' +
+      '# list of values\n' +
       'tags:\n' +
       '  - andheri\n' +
-      '  - bandra\n';
+      '  - bandra\n' +
+      '\n' +
+      '# object with nested fields (2 levels deep)\n' +
+      'rider:\n' +
+      '  username: regular_22\n' +
+      '  address:\n' +
+      '    line1: MG Road\n' +
+      '    pin: 400001\n' +
+      '\n' +
+      '# list of objects\n' +
+      'stops:\n' +
+      '  - name: Pickup\n' +
+      '    eta: 5\n' +
+      '  - name: Drop\n' +
+      '    eta: 20\n';
 
     function newDataset(presetCols) {
       let yaml = YAML_TEMPLATE;
@@ -3078,9 +3188,12 @@
         resolveItems.push(item);
       });
 
-      // Bare refs (SET locals not yet set) → type a value.
+      // Bare refs → gather candidate values from ALL datasets (deep). Pick one; type if none.
       unresolved.filter(r => r[0] !== '@').forEach(attr => {
-        resolveItems.push({ type: 'value', attr, distinct: [], chosen: undefined });
+        const distinct = distinctCandidates(candidatesForAttr(attr));
+        const item = { type: 'value', attr, distinct, chosen: undefined };
+        if (distinct.length === 1) item.chosen = distinct[0].value;   // one match -> auto, no conflict
+        resolveItems.push(item);
       });
 
       // Open focused on the first unresolved variable (conflict/manual), else the first.
@@ -3154,36 +3267,82 @@
       return wrap;
     }
 
+    // Per-file distinct values of an attribute (found at any depth): [{file, values:[…]}]
+    function candidatesByFile(attr) {
+      const out = [];
+      loadDatasets().forEach(ds => {
+        const vals = [], seen = new Set();
+        datasetRichRecords(ds).forEach(rec => {
+          const v = deepGetPath(rec, attr);
+          if (v !== undefined) { const k = valKey(v); if (!seen.has(k)) { seen.add(k); vals.push(v); } }
+        });
+        if (vals.length) out.push({ file: ds.name, values: vals });
+      });
+      return out;
+    }
+
     function renderValueDetail(it) {
-      const status = valueItemStatus(it);
-      const desc = it.distinct.length >= 2
-        ? it.distinct.length + ' possible values across datasets. Pick which test data to use.'
-        : it.distinct.length === 1
-          ? 'One match found, no conflict. Edit below if you want a different value.'
-          : 'No dataset has this variable. Type a value to use.';
+      const byFile = candidatesByFile(it.attr);
+      const desc = byFile.length
+        ? byFile.length + (byFile.length === 1 ? ' file has ' : ' files have ') + 'this variable. Pick a value, or type your own.'
+        : 'No dataset has this variable. Type a value to use.';
       const el = detailHead(it.attr, desc);
 
-      if (it.distinct.length) {
-        const opts = document.createElement('div'); opts.className = 'rv-opts';
-        it.distinct.forEach(c => {
-          const b = document.createElement('button'); b.className = 'rv-opt';
-          if (it.chosen !== undefined && valKey(it.chosen) === valKey(c.value)) b.classList.add('sel');
-          b.innerHTML = escapeHtml(displayVal(c.value)) + '<span class="rv-opt-src">' + escapeHtml(c.dataset) + '</span>';
-          b.onclick = () => { it.chosen = c.value; renderResolve(); };
-          opts.appendChild(b);
-        });
-        el.appendChild(opts);
+      if (byFile.length) {
+        const search = document.createElement('input');
+        search.className = 'rv-file-search';
+        search.placeholder = 'Search files…';
+        search.value = it.search || '';
+
+        const grid = document.createElement('div');
+        grid.className = 'rv-file-grid';
+        const fillGrid = () => {
+          const q = (it.search || '').toLowerCase();
+          const files = byFile.filter(f => f.file.toLowerCase().includes(q));
+          grid.innerHTML = '';
+          if (!files.length) { grid.innerHTML = '<div class="rv-file-empty">No files match “' + escapeHtml(it.search) + '”.</div>'; return; }
+          files.forEach(f => {
+            const card = document.createElement('div'); card.className = 'rv-file-card';
+            const head = document.createElement('div'); head.className = 'rv-file-name';
+            head.innerHTML = '<span class="rv-file-ico">' + svgIcon('database') + '</span><span class="rv-file-label"></span>';
+            head.querySelector('.rv-file-label').textContent = f.file + '.yaml';
+            card.appendChild(head);
+            const vals = document.createElement('div'); vals.className = 'rv-file-vals';
+            f.values.forEach(v => {
+              const b = document.createElement('button'); b.className = 'rv-opt';
+              if (it.chosen !== undefined && valKey(it.chosen) === valKey(v)) b.classList.add('sel');
+              if (v !== null && typeof v === 'object') { b.classList.add('rv-opt-tree'); b.appendChild(valueTree(v)); }
+              else b.textContent = displayVal(v);
+              b.onclick = () => { it.chosen = v; renderResolve(); };
+              vals.appendChild(b);
+            });
+            card.appendChild(vals);
+            grid.appendChild(card);
+          });
+        };
+        search.oninput = () => { it.search = search.value; fillGrid(); };
+        fillGrid();
+        el.appendChild(search);
+        el.appendChild(grid);
       }
+
+      // Custom value — pinned to the bottom so it's always reachable while the cards scroll.
+      const manWrap = document.createElement('div'); manWrap.className = 'rv-manual-wrap';
+      const manLabel = document.createElement('div'); manLabel.className = 'rv-manual-label';
+      manLabel.textContent = byFile.length ? 'Or enter a custom value' : 'Enter a value';
+      manWrap.appendChild(manLabel);
       const man = document.createElement('div'); man.className = 'rv-manual';
       const inp = document.createElement('input');
-      inp.placeholder = it.distinct.length ? 'Or type a value for ' + it.attr : 'Type a value for ' + it.attr;
-      if (it.chosen !== undefined && !it.distinct.some(c => valKey(c.value) === valKey(it.chosen))) inp.value = displayVal(it.chosen);
+      inp.placeholder = 'Custom value for ' + it.attr;
+      const inFiles = byFile.some(f => f.values.some(v => it.chosen !== undefined && valKey(v) === valKey(it.chosen)));
+      if (it.chosen !== undefined && !inFiles) inp.value = displayVal(it.chosen);
       const apply = document.createElement('button'); apply.className = 'btn rv-edit'; apply.textContent = 'Set';
       const setManual = () => { const v = inp.value.trim(); if (v !== '') { it.chosen = v; renderResolve(); } };
       apply.onclick = setManual;
       inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); setManual(); } };
       man.appendChild(inp); man.appendChild(apply);
-      el.appendChild(man);
+      manWrap.appendChild(man);
+      el.appendChild(manWrap);
       return el;
     }
 
@@ -3464,20 +3623,33 @@
       suggestRange = null;
     }
 
-    // Suggestion pool: SET variables + dataset columns (name.column).
-    // Unique attribute (column) names across all datasets.
+    // Unique attribute names across all datasets, at ANY depth (root or nested).
     function allDatasetAttributes() {
-      const seen = new Set(), out = [];
-      loadDatasets().forEach(ds => ds.columns.forEach(c => {
-        if (c && !seen.has(c)) { seen.add(c); out.push(c); }
-      }));
-      return out;
+      const set = new Set();
+      const walk = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        if (!Array.isArray(obj)) Object.keys(obj).forEach(k => { if (k !== 'key') set.add(k); });
+        for (const k in obj) { const v = obj[k]; if (v && typeof v === 'object') walk(v); }
+      };
+      loadDatasets().forEach(ds => datasetRichRecords(ds).forEach(rec => walk(rec)));
+      return Array.from(set);
+    }
+
+    // Unique field paths across ALL datasets (root + nested, e.g. address, address.line1).
+    function allDatasetFieldPaths() {
+      const set = new Set();
+      loadDatasets().forEach(ds => datasetFieldPaths(ds).forEach(p => set.add(p)));
+      return Array.from(set);
     }
 
     function suggestionPool() {
-      // V3 (Dataset mode): reference attributes directly, e.g. {{city}}.
+      // V3 (Dataset mode): reference attributes/paths directly (bare) or via {{@file.…}}.
       if (window.APP_VERSION === 3) {
-        return allDatasetAttributes().map(c => ({ name: c, type: 'attr' }));
+        const set = new Set();
+        const pool = [];
+        parseSetMap(input.value).forEach((info, name) => { if (!set.has(name)) { set.add(name); pool.push({ name, type: info.type }); } });
+        allDatasetFieldPaths().forEach(p => { if (!set.has(p)) { set.add(p); pool.push({ name: p, type: 'attr' }); } });
+        return pool;
       }
       // V1: SET variables (plus dataset columns if any).
       const pool = parseVariables().map(v => ({ name: v.name, type: v.type }));
@@ -3537,8 +3709,7 @@
         return;
       }
 
-      // V3 (Dataset mode): no bare {{…}} autocomplete — datasets are reached via {{@file.…}}.
-      if (window.APP_VERSION === 3) return closeSuggest();
+      // Bare {{partial — list SET variables + dataset attributes.
       const m = before.match(/\{\{\s*([\w$.]*)$/);   // caret right after "{{ partial" (dots allowed)
       if (!m) return closeSuggest();
       const partial = m[1].toLowerCase();
@@ -3564,6 +3735,186 @@
       };
       datasetRichRecords(ds).forEach(rec => walk(rec, ''));
       return Array.from(set);
+    }
+
+    /* ---------- Live variable drawer (right side of the editor) ---------- */
+    const RD_VALUE_CAP = 6;
+    function openRefDrawer() { document.getElementById('refDrawer').classList.add('open'); }
+    function closeRefDrawer() { const dr = document.getElementById('refDrawer'); if (dr) dr.classList.remove('open'); }
+
+    // Shown when the caret is inside a {{ … reference. Reflects what you're typing, live.
+    function updateRefDrawer() {
+      if (!document.getElementById('refDrawer')) return;
+      if (input.selectionStart !== input.selectionEnd) return closeRefDrawer();
+      const pos = input.selectionStart;
+      const before = input.value.slice(0, pos);
+      const atField = before.match(/\{\{\s*@([A-Za-z_$][\w$]*)\.([\w$.]*)$/);
+      const atFile  = before.match(/\{\{\s*@([A-Za-z_$][\w$]*)?$/);
+      const bare    = before.match(/\{\{\s*([\w$][\w$.]*)$/);   // bare, at least one char typed
+      if (atField) return drawerForFile(atField[1], (atField[2] || '').toLowerCase());
+      if (atFile)  return drawerForFiles((atFile[1] || '').toLowerCase());
+      if (bare)    return drawerForBare(bare[1].toLowerCase());
+      closeRefDrawer();
+    }
+
+    function matchingVariableNames(q) {
+      const set = new Set();
+      parseSetMap(input.value).forEach((info, name) => { if (name.toLowerCase().startsWith(q)) set.add(name); });
+      allDatasetAttributes().forEach(n => { if (n.toLowerCase().startsWith(q)) set.add(n); });
+      return Array.from(set).sort();
+    }
+    function valRow(value, label) {
+      const row = document.createElement('div'); row.className = 'rd-val';
+      const v = document.createElement('span'); v.className = 'rd-v'; v.textContent = displayVal(value);
+      const f = document.createElement('span'); f.className = 'rd-file'; f.textContent = label;
+      row.appendChild(v); row.appendChild(f);
+      return row;
+    }
+    // Render an object/array value as an indented key:value tree.
+    function valueTree(value) {
+      const wrap = document.createElement('div'); wrap.className = 'rd-tree';
+      const addNode = (key, val, depth) => {
+        const line = document.createElement('div'); line.className = 'rd-node'; line.style.paddingLeft = (depth * 13) + 'px';
+        const isObj = val !== null && typeof val === 'object';
+        let html = '';
+        if (key !== null) html += '<span class="rd-key">' + escapeHtml(key) + '</span><span class="rd-colon">:</span>';
+        if (!isObj) html += '<span class="rd-leaf">' + escapeHtml(displayVal(val)) + '</span>';
+        line.innerHTML = html;
+        wrap.appendChild(line);
+        if (isObj) {
+          const entries = Array.isArray(val) ? val.map((v, i) => [String(i), v]) : Object.entries(val);
+          entries.forEach(([k, v]) => addNode(k, v, depth + 1));
+        }
+      };
+      const entries = Array.isArray(value) ? value.map((v, i) => [String(i), v]) : Object.entries(value);
+      entries.forEach(([k, v]) => addNode(k, v, 0));
+      return wrap;
+    }
+    // Append a value to a drawer block: scalars as a compact row, objects/arrays as a tree.
+    function appendValue(el, value, label) {
+      if (value !== null && typeof value === 'object') {
+        if (label) { const h = document.createElement('div'); h.className = 'rd-file-head'; h.textContent = label; el.appendChild(h); }
+        el.appendChild(valueTree(value));
+      } else {
+        el.appendChild(valRow(value, label));
+      }
+    }
+    // Bare {{partial → matching variables, each with its values + the file they live in.
+    // If the partial drills into a nested object (e.g. address.line1), show that object's sub-fields.
+    function drawerForBare(q) {
+      const body = document.getElementById('refDrawerBody');
+      if (q.indexOf('.') >= 0) return drawerForNested(q);
+      document.getElementById('refDrawerTitle').textContent = 'Variables';
+      body.innerHTML = '';
+      const names = matchingVariableNames(q);
+      if (!names.length) {
+        body.innerHTML = '<div class="rd-empty">No variables match “' + escapeHtml(q) +
+          '”. Create a dataset, SET a local variable, or reference a file with {{@file.…}}.</div>';
+        return openRefDrawer();
+      }
+      const setMap = parseSetMap(input.value);
+      names.slice(0, 40).forEach(name => {
+        const el = document.createElement('div');
+        el.className = 'rd-var' + (name.toLowerCase() === q ? ' sel' : '');
+        const h = document.createElement('div'); h.className = 'rd-var-name'; h.textContent = name; el.appendChild(h);
+        if (setMap.has(name)) {
+          const s = document.createElement('div'); s.className = 'rd-set';
+          s.innerHTML = '= ' + escapeHtml(displayVal(setValueOf(setMap.get(name)))) + ' <span class="rd-src">· SET</span>';
+          el.appendChild(s);
+        }
+        const byFile = candidatesByFile(name);
+        let shown = 0, total = byFile.reduce((n, f) => n + f.values.length, 0);
+        byFile.forEach(f => f.values.forEach(v => { if (shown < RD_VALUE_CAP) { appendValue(el, v, f.file + '.yaml'); shown++; } }));
+        if (total > shown) { const m = document.createElement('div'); m.className = 'rd-more'; m.textContent = '+ ' + (total - shown) + ' more'; el.appendChild(m); }
+        if (!setMap.has(name) && total === 0) { const e = document.createElement('div'); e.className = 'rd-more'; e.textContent = 'no values yet'; el.appendChild(e); }
+        body.appendChild(el);
+      });
+      openRefDrawer();
+    }
+    // Bare drill-in: {{address.line1 → sub-fields under the `address` object, with values per file.
+    function drawerForNested(q) {
+      const body = document.getElementById('refDrawerBody');
+      const segs = q.split('.');
+      const partial = segs.pop();          // field being typed
+      const prefix = segs.join('.');       // the object path we're inside (e.g. "address" or "address.geo")
+      document.getElementById('refDrawerTitle').textContent = prefix;
+      body.innerHTML = '';
+
+      // Sub-field names that exist under `prefix` across any dataset record.
+      const subNames = new Set();
+      loadDatasets().forEach(ds => datasetRichRecords(ds).forEach(rec => {
+        const base = deepGetPath(rec, prefix);
+        if (base && typeof base === 'object' && !Array.isArray(base)) {
+          Object.keys(base).forEach(k => { if (k !== 'key' && k.toLowerCase().startsWith(partial)) subNames.add(k); });
+        }
+      }));
+      if (!subNames.size) {
+        body.innerHTML = '<div class="rd-empty">No fields under “' + escapeHtml(prefix) + '” match “' + escapeHtml(partial) + '”.</div>';
+        return openRefDrawer();
+      }
+      Array.from(subNames).sort().forEach(sub => {
+        const fullPath = prefix + '.' + sub;
+        const el = document.createElement('div');
+        el.className = 'rd-var' + (fullPath.toLowerCase() === q ? ' sel' : '');
+        // Show the full path so it's clear the value lives under the parent object.
+        const h = document.createElement('div'); h.className = 'rd-var-name';
+        h.innerHTML = '<span class="rd-path-parent">' + escapeHtml(prefix) + '.</span>' + escapeHtml(sub);
+        el.appendChild(h);
+        const byFile = candidatesByFile(fullPath);
+        let shown = 0, total = byFile.reduce((n, f) => n + f.values.length, 0);
+        byFile.forEach(f => f.values.forEach(v => { if (shown < RD_VALUE_CAP) { appendValue(el, v, f.file + '.yaml'); shown++; } }));
+        if (total > shown) { const m = document.createElement('div'); m.className = 'rd-more'; m.textContent = '+ ' + (total - shown) + ' more'; el.appendChild(m); }
+        body.appendChild(el);
+      });
+      openRefDrawer();
+    }
+    // {{@partial → matching dataset files, each previewing its fields.
+    function drawerForFiles(q) {
+      const body = document.getElementById('refDrawerBody');
+      document.getElementById('refDrawerTitle').textContent = 'Files';
+      body.innerHTML = '';
+      const files = loadDatasets().filter(d => d.name.toLowerCase().startsWith(q));
+      if (!files.length) { body.innerHTML = '<div class="rd-empty">No datasets match “' + escapeHtml(q) + '”.</div>'; return openRefDrawer(); }
+      files.forEach(ds => {
+        const el = document.createElement('div'); el.className = 'rd-var';
+        const h = document.createElement('div'); h.className = 'rd-var-name'; h.textContent = ds.name + '.yaml'; el.appendChild(h);
+        const rec = datasetRichRecords(ds)[0] || {};
+        const top = {};
+        Object.keys(rec).filter(k => k !== 'key').slice(0, RD_VALUE_CAP).forEach(k => { top[k] = rec[k]; });
+        if (Object.keys(top).length) el.appendChild(valueTree(top));
+        body.appendChild(el);
+      });
+      openRefDrawer();
+    }
+    // {{@file.partial → per record, the matching fields shown as a nested tree.
+    function drawerForFile(file, q) {
+      const ds = loadDatasets().find(d => d.name === file);
+      if (!ds) return closeRefDrawer();
+      const body = document.getElementById('refDrawerBody');
+      document.getElementById('refDrawerTitle').textContent = file + '.yaml';
+      body.innerHTML = '';
+      const records = datasetRichRecords(ds);
+      const hasKey = ds.columns.indexOf('key') >= 0;
+      const segs = q.split('.');
+      const partial = segs.pop();          // the field being typed
+      const prefix = segs;                 // already-completed path (drill-down)
+      let any = false;
+      records.slice(0, RD_VALUE_CAP).forEach((rec, ri) => {
+        const base = prefix.length ? getPath(rec, prefix) : rec;
+        if (!base || typeof base !== 'object') return;
+        const filtered = {};
+        Object.keys(base).forEach(k => { if (k !== 'key' && k.toLowerCase().startsWith(partial)) filtered[k] = base[k]; });
+        if (!Object.keys(filtered).length) return;
+        any = true;
+        const el = document.createElement('div'); el.className = 'rd-var';
+        const h = document.createElement('div'); h.className = 'rd-var-name';
+        h.textContent = (hasKey ? displayVal(rec.key) : 'row ' + ri) + (prefix.length ? ' · ' + prefix.join('.') : '');
+        el.appendChild(h);
+        el.appendChild(valueTree(filtered));
+        body.appendChild(el);
+      });
+      if (!any) body.innerHTML = '<div class="rd-empty">No fields match “' + escapeHtml(q) + '” in ' + escapeHtml(file) + '.</div>';
+      openRefDrawer();
     }
 
     function renderSuggest() {
@@ -4259,9 +4610,32 @@
         appendLog('<span class="log-data">Data · ' + data + '</span>', '');
       }
 
+      // Track variable values as the script runs, so SET lines log allocation / change.
+      const liveVars = {};
       for (let i = 0; i < steps.length; i++) {
         await sleep(1000);   // each step takes ~1 second
-        const resolved = resolveTokens(steps[i], env);
+        const setM = steps[i].match(SET_RE);
+        if (setM) {
+          const name = setM[1];
+          const newV = setValueOf({ name, ...inferType(setM[2]) });
+          const had = Object.prototype.hasOwnProperty.call(liveVars, name);
+          const oldV = liveVars[name];
+          liveVars[name] = newV;
+          const body = had
+            ? escapeHtml(name) + ' <span class="log-old">' + escapeHtml(displayVal(oldV)) + '</span>' +
+              '<span class="log-arrow"> → </span><b class="log-new">' + escapeHtml(displayVal(newV)) + '</b>'
+            : escapeHtml(name) + ' <span class="log-arrow">= </span><b class="log-new">' + escapeHtml(displayVal(newV)) + '</b>';
+          appendLog(
+            '<span class="log-idx">' + (i + 1) + '</span>' +
+            '<span class="log-cmd">SET</span> ' + body +
+            '<span class="log-pass">✓</span>',
+            'step'
+          );
+          continue;
+        }
+        // Resolve with the values as they stand RIGHT NOW (live SET values overlaid).
+        const stepEnv = { vars: Object.assign({}, env.vars, liveVars), datasets: env.datasets, rowMap: env.rowMap };
+        const resolved = resolveTokens(steps[i], stepEnv);
         const cmd = resolved.split(/\s+/)[0];
         const rest = resolved.slice(cmd.length);
         appendLog(
