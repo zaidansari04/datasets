@@ -2171,9 +2171,10 @@
       paymentApi:     { method: 'POST', path: '/payments/charge', status: 200, response: { txn_id: 'TXN-99210', state: 'captured', amount: 499 } },
     };
 
-    // Match the SET expression functions: screen() | ai("hint") | api.name("path").
-    // The string argument allows escaped quotes via `\\.` so a \" doesn't end it early.
-    const EXPR_RE = /^(screen|ai)\s*\(\s*(?:(["'])((?:\\.|[^\\])*?)\2)?\s*\)$|^api\.([A-Za-z_$][\w$]*)\s*\(\s*(["'])((?:\\.|[^\\])*?)\5\s*\)$/;
+    // Match the SET expression functions: screen() | ai(hint) | api.name("path").
+    // The screen()/ai() hint may be quoted ("…") OR bare natural-language text up to ).
+    // Groups: 1 kind · 2 quote · 3 quoted-hint · 4 bare-hint · 5 api-name · 6 quote · 7 api-path.
+    const EXPR_RE = /^(screen|ai)\s*\(\s*(?:(["'])((?:\\.|[^\\])*?)\2|([^)]*?))\s*\)$|^api\.([A-Za-z_$][\w$]*)\s*\(\s*(["'])((?:\\.|[^\\])*?)\6\s*\)$/;
     // Unescape \" \' and \\ inside a captured string literal.
     function unescapeStr(s) { return (s || '').replace(/\\(["'\\])/g, '$1'); }
 
@@ -2184,8 +2185,11 @@
       const v = raw.trim();
       const ex = v.match(EXPR_RE);
       if (ex) {
-        if (ex[1]) return { type: ex[1], value: v, expr: { kind: ex[1], hint: unescapeStr(ex[3]) } };
-        return { type: 'api', value: v, expr: { kind: 'api', api: ex[4], path: unescapeStr(ex[6]) } };
+        if (ex[1]) {
+          const hint = ex[3] !== undefined ? unescapeStr(ex[3]) : (ex[4] || '').trim();
+          return { type: ex[1], value: v, expr: { kind: ex[1], hint } };
+        }
+        return { type: 'api', value: v, expr: { kind: 'api', api: ex[5], path: unescapeStr(ex[7]) } };
       }
       if (v === 'null') return { type: 'null', value: 'null' };
       if (v === 'true' || v === 'false') return { type: 'boolean', value: v };
@@ -5147,16 +5151,40 @@
     // Restore the saved prototype version (defaults to V1)
     setVersion(3);
 
-    // Seed with a starter script that shows the SET expression forms.
+    // Seed with a guided starter that teaches variables, datasets, and dynamic values.
     input.value = [
-      'OPEN_APP com.example.app',
+      '# 👋 Welcome to Drizz Studio — here’s how a test case works.',
+      '# Lines starting with # are comments; they’re skipped when you Run.',
+      '',
+      '# 1) LOCAL VARIABLES — declare with SET (string, number, list, object):',
       'SET city = "Mumbai"',
-      'API loginApi',
-      'SET auth_status = api.loginApi("the status code")',
-      'SET token = api.loginApi("token")',
-      'SET order_id = screen()',
+      'SET retries = 3',
+      'SET platforms = ["Android", "iOS"]',
+      '',
+      '# 2) USE A VARIABLE anywhere with {{ }}:',
+      'OPEN_APP com.example.app',
+      'TYPE {{city}}',
+      '',
+      '# 3) DATASET VALUES — create files in the “Datasets” tab, then reference their',
+      '#    fields here, e.g. {{rider.username}} or {{rider.address.line1}} or {{app}}.',
+      '#    Type {{ to pick from the list, or click “Variables” in the footer to browse.',
+      '# TYPE {{rider.username}}',
+      '',
+      '# 4) DYNAMIC VALUES — read the screen, ask AI, or pull from an API response:',
+      '',
+      '#    screen() captures whatever is shown on screen right now. Place an order,',
+      '#    grab the order id off the confirmation screen, then reuse/verify it:',
+      'TAP Place Order',
+      'SET order_id = screen(Capture the order ID from screen)',
+      'ASSERT {{order_id}}',
+      '',
       'SET email = ai("a test email")',
+      'API loginApi',
+      'SET token = api.loginApi("token")',
       'TYPE {{email}}',
+      '',
+      '# 5) Press Run ▸ — any unresolved variable opens the Resolve window, where you',
+      '#    pick its value from a dataset (or type one), and then the test runs.',
       ''
     ].join('\n');
     input.selectionStart = input.selectionEnd = input.value.length;
