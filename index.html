@@ -417,9 +417,12 @@
     }
     .plan-case:last-child { border-bottom: none; }
     .plan-case:hover { background: #f9fafb; }
-    .plan-case input { width: 17px; height: 17px; accent-color: var(--purple); cursor: pointer; }
+    .plan-case.sel { background: #faf8ff; }
+    .plan-case input { width: 17px; height: 17px; accent-color: var(--purple); cursor: pointer; flex: none; }
     .plan-case .pc-name { font-weight: 600; font-size: 14.5px; }
     .plan-case .pc-sub { color: var(--text-faint); font-size: 12.5px; font-family: var(--mono); }
+    .plan-case .pc-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .plan-case .pc-pills .plan-var-pill { margin: 0; }
     .plan-var-pill {
       display: inline-block; font-family: var(--mono); font-size: 12px;
       padding: 3px 9px; border-radius: 999px; background: #f3effe; color: var(--purple);
@@ -427,6 +430,72 @@
     }
     .plan-var-pill.set { background: #ecfdf5; color: #047857; }
     .plan-dot { width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block; }
+
+    /* Test plan loop config (Data set tab) */
+    .plan-loop-bar {
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 16px; background: var(--bg-soft);
+    }
+    .plan-loop-toggle { display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 600; cursor: pointer; }
+    .plan-loop-toggle input { width: 17px; height: 17px; accent-color: var(--purple); cursor: pointer; }
+    #planLoopConfig { margin-top: 12px; }
+    .plan-loop-hint { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    #planLoopTables { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+    .plan-loop-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .plan-loop-mode { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .plan-loop-mode select {
+      height: 36px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 9px;
+      font-family: var(--sans); font-size: 13.5px; color: var(--text); background: #fff; cursor: pointer;
+    }
+    .plan-loop-count { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--purple); }
+
+    /* Loop axes as selectable chips/cards */
+    .plan-axis {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 10px;
+      background: #fff; cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .plan-axis:hover { border-color: var(--purple-light); }
+    .plan-axis.sel { border-color: var(--purple); background: #faf8ff; box-shadow: 0 0 0 2px rgba(109,40,217,0.08); }
+    .plan-axis input { width: 17px; height: 17px; accent-color: var(--purple); cursor: pointer; flex: none; }
+    .plan-axis-body { min-width: 0; flex: 1; }
+    .plan-axis-name { font-family: var(--mono); font-weight: 600; font-size: 13.5px; color: var(--text); }
+    .plan-axis-meta { font-size: 12px; color: var(--text-faint); margin-top: 1px; }
+    .plan-axis-count {
+      flex: none; font-family: var(--mono); font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px; background: #f3effe; color: var(--purple);
+    }
+    #planLoopTables { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+
+    /* Builder: selection summary + sticky footer */
+    .plan-sel-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 0 4px 14px; margin-bottom: 6px;
+    }
+    .plan-sel-count {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      background: var(--purple-soft); color: var(--purple);
+      padding: 5px 12px; border-radius: 999px;
+    }
+    .plan-foot {
+      flex: none; display: flex; align-items: center; gap: 14px;
+      padding: 14px 30px; border-top: 1px solid var(--border); background: #fff;
+    }
+    .plan-foot-summary { font-size: 13.5px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    .plan-foot-summary b { color: var(--text); font-weight: 600; }
+    .plan-foot-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+    /* Richer saved-plan cards */
+    .plan-card-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0; }
+    .plan-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+      background: var(--bg-soft); color: var(--text-muted); border: 1px solid var(--border);
+    }
+    .plan-chip .ico { width: 12px; height: 12px; }
+    .plan-chip.runs { background: var(--purple-soft); color: var(--purple); border-color: #e4dcff; }
+    .plan-chip.loop { background: #ecfdf5; color: #047857; border-color: #c7f0dd; }
+    .plan-chip.ds   { background: #ecfeff; color: #0e7490; border-color: #cdeef3; font-family: var(--mono); }
 
     /* Clickable dataset table in the resolve window */
     .resolve-ds-block { margin-bottom: 14px; }
@@ -512,7 +581,10 @@
     .rv-file-search:focus { border-color: var(--purple); }
     .rv-file-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
     /* The plan builder's detail pane is full-width → fit 4 file cards per row. */
-    #planResolveDetail .rv-file-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    /* Plan builder detail: file cards span full width and their values flow in 3 columns
+       so the wide detail pane isn't left empty. */
+    #planResolveDetail .rv-file-grid { grid-template-columns: 1fr; }
+    #planResolveDetail .rv-file-vals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
     .rv-file-card {
       border: 1px solid var(--border-strong); border-radius: 12px;
       padding: 12px; background: #fff; box-shadow: var(--shadow-sm);
@@ -1785,23 +1857,44 @@
       <div class="projects-header">
         <div style="display:flex; align-items:center; gap:14px; min-width:0;">
           <button class="btn" onclick="closePlanBuilder()"><span data-ico="chevron-left"></span> Back</button>
-          <div class="ds-name-input" style="max-width:280px;">
+          <div class="ds-name-input" style="max-width:320px;">
             <span class="ds-name-ico" data-ico="clipboard-check"></span>
             <input id="planNameInput" placeholder="Plan name" spellcheck="false" autocomplete="off" />
           </div>
         </div>
-        <button class="btn primary" onclick="savePlan()"><span data-ico="save"></span> Save plan</button>
       </div>
       <div class="plan-build-tabs">
         <button class="plan-build-tab active" data-ptab="cases" onclick="planTab('cases')">1 · Test cases</button>
-        <button class="plan-build-tab" data-ptab="data" onclick="planTab('data')">2 · Data set</button>
+        <button class="plan-build-tab" data-ptab="data" onclick="planTab('data')">2 · Data &amp; loop</button>
       </div>
       <div class="plan-build-body">
         <div id="planTabCases">
-          <div class="td-hint" style="padding: 0 4px 12px;">Select the test cases from Projects to include in this plan.</div>
+          <div class="plan-sel-bar">
+            <span class="plan-sel-count" id="planCaseCount">0 selected</span>
+            <span class="td-hint">Pick the test cases to include in this plan.</span>
+          </div>
           <div class="plan-cases" id="planCases"></div>
         </div>
         <div id="planTabData" style="display:none; height:100%;">
+          <div class="plan-loop-bar">
+            <label class="plan-loop-toggle">
+              <input type="checkbox" id="planLoop" onchange="renderPlanLoop()" />
+              <span>Loop this plan over list variables</span>
+            </label>
+            <div id="planLoopConfig" style="display:none;">
+              <div class="plan-loop-hint">Each selected list variable becomes a loop axis. Scalars stay fixed across runs.</div>
+              <div id="planLoopTables"></div>
+              <div class="plan-loop-row">
+                <label class="plan-loop-mode" id="planLoopModeWrap">Combine mode
+                  <select id="planLoopMode" onchange="updateLoopCount()">
+                    <option value="matrix">Matrix — all combinations</option>
+                    <option value="paired" id="planLoopModePaired">Paired — by index</option>
+                  </select>
+                </label>
+                <span id="planLoopCount" class="plan-loop-count"></span>
+              </div>
+            </div>
+          </div>
           <div class="resolve-hint">Every variable used by the selected cases must be resolved. Pick a value on the left, resolve it on the right.</div>
           <div class="resolve-split" id="planResolveSplit">
             <div class="resolve-list" id="planResolveList"></div>
@@ -1809,6 +1902,10 @@
           </div>
           <div id="planResolveEmpty" class="var-empty" style="display:none;">No variables to resolve — these cases set everything locally.</div>
         </div>
+      </div>
+      <div class="plan-foot">
+        <div class="plan-foot-summary" id="planFootSummary"></div>
+        <div class="plan-foot-actions" id="planFootActions"></div>
       </div>
     </div>
    </div><!-- /plansView -->
@@ -2037,15 +2134,23 @@
       return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // A reference token. Two forms:
+    // A reference token. Forms:
     //   {{var}} / {{var.path}}      — a SET local variable (optionally a path into a SET object)
+    //   {{var[i]}} / {{var[i].sub}} — index into a list-valued variable (0-based), then optional path
     //   {{@file.attr.sub}}          — a dataset reference: @ + file name, then the nested path
-    const REF_RE = /\{\{\s*(@?[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*\}\}/g;
+    const REF_RE = /\{\{\s*(@?[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\[\d+\])*)\s*\}\}/g;
+
+    // Split a ref string into path segments, turning [i] index notation into a plain
+    // segment so the same getPath() walk handles both object keys and array indices.
+    //   "city[2].name" → ["city", "2", "name"]   (0-based; "2" indexes the array)
+    function refToSegs(ref) {
+      return ref.replace(/\[(\d+)\]/g, '.$1').split('.');
+    }
 
     // Split a ref into its parts. Dataset refs start with '@'.
     function parseRef(ref) {
       if (ref[0] === '@') {
-        const segs = ref.slice(1).split('.');
+        const segs = refToSegs(ref.slice(1));
         return { kind: 'dataset', file: segs[0], path: segs.slice(1) };
       }
       return { kind: 'var', name: ref };
@@ -2062,7 +2167,7 @@
     }
     // Resolve a ref-path inside one record: find the root key anywhere (deep), then walk the rest.
     function deepGetPath(rec, ref) {
-      const segs = ref.split('.');
+      const segs = refToSegs(ref);
       const root = deepGet(rec, segs[0]);
       return segs.length === 1 ? root : getPath(root, segs.slice(1));
     }
@@ -2083,8 +2188,8 @@
       }
       const setMap = parseSetMap(input.value);
       if (setMap.has(ref)) return true;                       // exact SET var
-      const segs = ref.split('.');
-      if (segs.length > 1 && setMap.has(segs[0])) {           // path into a SET object/array
+      const segs = refToSegs(ref);
+      if (segs.length > 1 && setMap.has(segs[0])) {           // path/index into a SET object/array
         const info = setMap.get(segs[0]);
         if (info.type === 'object' || info.type === 'array') {
           try { if (getPath(JSON.parse(info.value), segs.slice(1)) !== undefined) return true; } catch (e) {}
@@ -2937,17 +3042,35 @@
       document.getElementById('planListPane').style.display = which === 'list' ? 'flex' : 'none';
       document.getElementById('planBuilderPane').style.display = which === 'builder' ? 'flex' : 'none';
     }
+    // Reset the loop config (axis selections + toggle) so it never leaks between plans.
+    function resetPlanLoopState() {
+      planLoopRoots.clear(); loopTouched.clear();
+      const cb = document.getElementById('planLoop'); if (cb) cb.checked = false;
+      const cfg = document.getElementById('planLoopConfig'); if (cfg) cfg.style.display = 'none';
+      const mode = document.getElementById('planLoopMode'); if (mode) mode.value = 'matrix';
+    }
     function newPlan() {
       planBuilder = { id: 'plan_' + Date.now(), name: '' };
       planSelected.clear(); planSeed = null;
+      resetPlanLoopState();
       document.getElementById('planNameInput').value = '';
       showPlanPane('builder'); planTab('cases'); renderPlanCases();
     }
     function editPlan(id) {
       const p = loadPlans().find(x => x.id === id); if (!p) return;
       planBuilder = { id: p.id, name: p.name };
-      planSelected.clear(); (p.caseIds || []).forEach(cid => planSelected.add(cid));
-      planSeed = planSeedFromValues(p.values || {});
+      planSelected.clear();
+      resetPlanLoopState();
+      if (p.attempts) {
+        // Looping plan (baked attempts): re-seed the single case + turn the loop toggle on.
+        const caseIds = Array.from(new Set(p.attempts.map(a => a.caseId)));
+        caseIds.forEach(cid => planSelected.add(cid));
+        planSeed = null;
+        const cb = document.getElementById('planLoop'); if (cb) cb.checked = true;
+      } else {
+        (p.caseIds || []).forEach(cid => planSelected.add(cid));
+        planSeed = planSeedFromValues(p.values || {});
+      }
       document.getElementById('planNameInput').value = p.name;
       showPlanPane('builder'); planTab('cases'); renderPlanCases();
     }
@@ -2964,7 +3087,8 @@
       document.querySelectorAll('.plan-build-tab').forEach(b => b.classList.toggle('active', b.dataset.ptab === tab));
       document.getElementById('planTabCases').style.display = tab === 'cases' ? '' : 'none';
       document.getElementById('planTabData').style.display = tab === 'data' ? 'flex' : 'none';
-      if (tab === 'data') openPlanResolve();
+      if (tab === 'data') { openPlanResolve(); renderPlanLoop(); }
+      updatePlanFooter();
     }
 
     function renderPlanCases() {
@@ -2973,21 +3097,62 @@
       list.innerHTML = '';
       if (!cases.length) {
         list.innerHTML = '<div class="var-empty">No saved test cases. Create and save one in the editor first.</div>';
-        return;
+        updatePlanSelBar(); updatePlanFooter(); return;
       }
       cases.forEach(c => {
         const refs = refsInContent(c.content);
         const row = document.createElement('label');
-        row.className = 'plan-case';
-        row.innerHTML = '<input type="checkbox" /><div class="datafile-info">' +
-          '<div class="pc-name"></div><div class="pc-sub"></div></div>';
+        row.className = 'plan-case' + (planSelected.has(c.id) ? ' sel' : '');
+        row.innerHTML = '<input type="checkbox" /><div class="datafile-info" style="min-width:0;flex:1;">' +
+          '<div class="pc-name"></div><div class="pc-pills"></div></div>';
         const cb = row.querySelector('input');
         cb.checked = planSelected.has(c.id);
-        cb.onchange = () => { cb.checked ? planSelected.add(c.id) : planSelected.delete(c.id); };
+        cb.onchange = () => {
+          cb.checked ? planSelected.add(c.id) : planSelected.delete(c.id);
+          row.classList.toggle('sel', cb.checked);
+          updatePlanSelBar(); updatePlanFooter();
+        };
         row.querySelector('.pc-name').textContent = c.name;
-        row.querySelector('.pc-sub').textContent = refs.length ? refs.join(', ') : 'no variables';
+        const pills = row.querySelector('.pc-pills');
+        if (refs.length) refs.forEach(r => {
+          const p = document.createElement('span'); p.className = 'plan-var-pill'; p.textContent = r; pills.appendChild(p);
+        });
+        else { const s = document.createElement('span'); s.className = 'pc-sub'; s.textContent = 'no variables'; pills.appendChild(s); }
         list.appendChild(row);
       });
+      updatePlanSelBar(); updatePlanFooter();
+    }
+
+    // Union of {{refs}} across the currently selected cases.
+    function planVarNames() {
+      const set = new Set();
+      selectedCases().forEach(c => refsInContent(c.content).forEach(r => set.add(r)));
+      return Array.from(set);
+    }
+    function updatePlanSelBar() {
+      const el = document.getElementById('planCaseCount');
+      if (el) el.textContent = planSelected.size + ' selected';
+    }
+    // Context-aware builder footer: summary + the right primary action (Save / Preview / Run).
+    function updatePlanFooter() {
+      const sum = document.getElementById('planFootSummary');
+      const acts = document.getElementById('planFootActions');
+      if (!sum || !acts) return;
+      const n = planSelected.size, vars = planVarNames().length;
+      const looping = !!(document.getElementById('planLoop') || {}).checked;
+      sum.innerHTML = '<b>' + n + '</b> test case' + (n !== 1 ? 's' : '') +
+        ' · <b>' + vars + '</b> variable' + (vars !== 1 ? 's' : '') +
+        (looping ? ' · <span style="color:#047857;font-weight:600;">loop on</span>' : '');
+      const dis = n === 0 ? ' disabled' : '';
+      acts.innerHTML = looping
+        ? '<button class="btn primary" id="planActPrimary"' + dis + '><span data-ico="play" data-ico-fill="1"></span> Preview runs</button>'
+        : '<button class="btn" id="planActRun"' + dis + '><span data-ico="play" data-ico-fill="1"></span> Run now</button>' +
+          '<button class="btn primary" id="planActPrimary"' + dis + '><span data-ico="save"></span> Save plan</button>';
+      hydrateIcons(acts);
+      const primary = document.getElementById('planActPrimary');
+      if (primary) primary.onclick = looping ? runPlanFromBuilder : savePlan;
+      const runBtn = document.getElementById('planActRun');
+      if (runBtn) runBtn.onclick = runPlanFromBuilder;
     }
 
     // Render the resolve master–detail inside the builder's Data set tab.
@@ -3029,22 +3194,29 @@
     function cartesian(lists) {
       return lists.reduce((acc, list) => acc.flatMap(a => list.map(x => a.concat([x]))), [[]]);
     }
+    // Paired/zip combine: align lists by index. Run count = longest list; shorter lists
+    // (e.g. a scalar/broadcast axis of length 1) repeat their last element on every run.
+    function zip(lists) {
+      if (!lists.length) return [[]];
+      const n = Math.max(...lists.map(l => l.length));
+      const out = [];
+      for (let i = 0; i < n; i++) out.push(lists.map(l => l[i < l.length ? i : l.length - 1]));
+      return out;
+    }
+    // Which combine mode the loop config is set to ('matrix' = cartesian, 'paired' = zip).
+    function loopCombineMode() {
+      const el = document.getElementById('planLoopMode');
+      return el ? el.value : 'matrix';
+    }
     function comboKey(rec) { return rec.key !== undefined ? String(rec.key) : displayVal(rec); }
 
-    // Distinct values a plain ref can take, from the first dataset that provides it (deep).
-    function valueAxisInfo(ref) {
-      for (const ds of loadDatasets()) {
-        const vals = datasetRichRecords(ds).map(rec => deepGetPath(rec, ref)).filter(v => v !== undefined);
-        if (vals.length) {
-          const seen = new Set(), out = [];
-          vals.forEach(v => { const k = displayVal(v); if (!seen.has(k)) { seen.add(k); out.push(v); } });
-          return { dsName: ds.name, values: out };
-        }
-      }
-      return { dsName: null, values: [] };
+    // True when a plain ref resolves to a LIST in any dataset (a list-valued column) — only
+    // these are loopable. Scalars stay fixed across runs.
+    function refIsListAttr(ref) {
+      return loadDatasets().some(ds =>
+        datasetRichRecords(ds).some(rec => Array.isArray(deepGetPath(rec, ref))));
     }
-
-    // All loopable axes for the selected cases: record datasets + plain-value datasets.
+    // All loopable axes for the selected cases: record datasets + list-valued variables.
     function planAxes() {
       const axes = [], named = new Set();
       planRecordRoots().forEach(root => {
@@ -3059,8 +3231,13 @@
           if (r.indexOf('.') >= 0) return;            // plain values only
           if (named.has(r) || vseen.has(r)) return;
           if (setMap.has(r)) return;                  // SET in case
-          const info = valueAxisInfo(r);
-          if (info.values.length) { vseen.add(r); axes.push({ name: r, kind: 'value', count: info.values.length, values: info.values, dsName: info.dsName }); }
+          // Only LIST-valued variables are loopable. A scalar (item_a:"pizza") is not an axis —
+          // it stays fixed across runs and is resolved through the normal resolve step.
+          if (!refIsListAttr(r)) return;
+          // candidatesForAttr() unwraps the list column into its elements (expandCandidateValues),
+          // so a column like username:["aa1".."aa5"] becomes a 5-value axis.
+          const cands = distinctCandidates(candidatesForAttr(r));
+          if (cands.length) { vseen.add(r); axes.push({ name: r, kind: 'value', count: cands.length, values: cands.map(c => c.value), dsName: cands[0].dataset }); }
         });
       });
       return axes;
@@ -3069,6 +3246,7 @@
     function renderPlanLoop() {
       const loopOn = document.getElementById('planLoop').checked;
       document.getElementById('planLoopConfig').style.display = loopOn ? '' : 'none';
+      updatePlanFooter();   // loop on/off changes the primary action (Save ↔ Preview runs)
       const axes = planAxes();
       const names = axes.map(a => a.name);
       Array.from(planLoopRoots).forEach(n => { if (names.indexOf(n) < 0) planLoopRoots.delete(n); });
@@ -3076,37 +3254,68 @@
       const tables = document.getElementById('planLoopTables');
       tables.innerHTML = '';
       if (!axes.length) {
-        tables.innerHTML = '<div class="var-empty">No dataset-backed variables in the selected cases.</div>';
+        tables.innerHTML = '<div class="var-empty">No list variables in the selected case. Loop needs a list-valued variable (e.g. <code>city: ["A","B"]</code>).</div>';
         document.getElementById('planLoopCount').textContent = '';
+        const modeWrap = document.getElementById('planLoopModeWrap');
+        if (modeWrap) modeWrap.style.display = 'none';
         return;
       }
       axes.forEach(a => {
         if (!loopTouched.has(a.name)) { planLoopRoots.add(a.name); loopTouched.add(a.name); }  // default-on
         const row = document.createElement('label');
-        row.className = 'plan-case';
-        row.style.border = 'none'; row.style.padding = '8px 0';
-        row.innerHTML = '<input type="checkbox" /><div><div class="pc-name"></div><div class="pc-sub"></div></div>';
+        row.className = 'plan-axis' + (planLoopRoots.has(a.name) ? ' sel' : '');
+        row.innerHTML = '<input type="checkbox" /><div class="plan-axis-body">' +
+          '<div class="plan-axis-name"></div><div class="plan-axis-meta"></div></div>' +
+          '<span class="plan-axis-count"></span>';
         const cb = row.querySelector('input');
         cb.checked = planLoopRoots.has(a.name);
-        cb.onchange = () => { cb.checked ? planLoopRoots.add(a.name) : planLoopRoots.delete(a.name); updateLoopCount(); };
-        row.querySelector('.pc-name').textContent = a.name;
-        row.querySelector('.pc-sub').textContent = a.count + (a.kind === 'record' ? ' records' : ' values');
+        cb.onchange = () => {
+          cb.checked ? planLoopRoots.add(a.name) : planLoopRoots.delete(a.name);
+          row.classList.toggle('sel', cb.checked);
+          updateLoopCount();
+        };
+        row.querySelector('.plan-axis-name').textContent = a.name;
+        row.querySelector('.plan-axis-meta').textContent = a.kind === 'record' ? 'dataset rows' : 'list variable';
+        row.querySelector('.plan-axis-count').textContent = a.count + (a.kind === 'record' ? ' rows' : ' items');
         tables.appendChild(row);
       });
       updateLoopCount();
+      updatePlanFooter();
     }
     function updateLoopCount() {
       const axes = planAxes().filter(a => planLoopRoots.has(a.name));
-      const total = axes.length ? axes.reduce((acc, a) => acc * a.count, 1) : 0;
+      const counts = axes.map(a => a.count);
+      // Combine mode only matters with 2+ axes (with one, matrix === paired) — hide it otherwise.
+      const multi = axes.length >= 2;
+      const modeWrap = document.getElementById('planLoopModeWrap');
+      if (modeWrap) modeWrap.style.display = multi ? '' : 'none';
+      // Paired (zip by index) only makes sense when every selected list has the same length.
+      const sameLen = axes.length > 0 && axes.every(a => a.count === axes[0].count);
+      const sel = document.getElementById('planLoopMode');
+      const pairedOpt = document.getElementById('planLoopModePaired');
+      if (pairedOpt) {
+        pairedOpt.disabled = !sameLen;
+        pairedOpt.title = sameLen ? '' : 'Available only when all selected lists have the same length';
+      }
+      if (!sameLen && sel && sel.value === 'paired') sel.value = 'matrix';   // fall back
+      const paired = multi && sameLen && loopCombineMode() === 'paired';
+      // Matrix → product of axis sizes; Paired → one run per index (longest list).
+      const total = !axes.length ? 0 : paired ? Math.max.apply(null, counts) : counts.reduce((a, b) => a * b, 1);
+      const detail = !multi
+        ? axes.map(a => a.name + ' ' + a.count).join('')
+        : paired ? 'paired by index' : axes.map(a => a.name + ' ' + a.count).join(' × ');
       document.getElementById('planLoopCount').textContent = axes.length
-        ? total + ' combination' + (total !== 1 ? 's' : '') + '  (' + axes.map(a => a.name + ': ' + a.count).join(' × ') + ')'
-        : 'Select at least one dataset to loop over.';
+        ? total + ' run' + (total !== 1 ? 's' : '') + '  (' + detail + ')'
+        : (planAxes().length ? 'Select at least one list variable to loop over.' : '');
     }
 
     function runPlanFromBuilder() {
       const cases = selectedCases();
-      if (!cases.length) { alert('Select at least one test case.'); return; }
-      if (document.getElementById('planLoop').checked) { startPlanLoop(cases); return; }
+      if (!cases.length) { appAlert('No test cases', 'Select at least one test case.'); return; }
+      if (document.getElementById('planLoop').checked) {
+        if (cases.length !== 1) { appAlert('One test case', 'Looping currently supports exactly one test case. Select a single case, then loop.'); return; }
+        startPlanLoop(cases); return;
+      }
       const { need } = planVariables();
       if (need.length) openResolveModal(need, ov => runPlanExecute(cases, ov));
       else runPlanExecute(cases, {});
@@ -3116,7 +3325,7 @@
 
     function startPlanLoop(cases) {
       const axes = planAxes().filter(a => planLoopRoots.has(a.name));
-      if (!axes.length) { alert('Select at least one dataset to loop over.'); return; }
+      if (!axes.length) { appAlert('No variables to loop', 'Select at least one variable to loop over.'); return; }
       const lists = axes.map(a => {
         if (a.kind === 'record') {
           const ds = loadDatasets().find(d => d.name === a.name);
@@ -3124,7 +3333,10 @@
         }
         return a.values.map(v => ({ kind: 'value', name: a.name, value: v, label: displayVal(v) }));
       });
-      const combos = cartesian(lists);
+      // Paired (zip by index) vs Matrix (cartesian product). Everything downstream is generic over combos.
+      // Paired requires all selected lists to be the same length; otherwise fall back to Matrix.
+      const sameLen = axes.every(a => a.count === axes[0].count);
+      const combos = (loopCombineMode() === 'paired' && sameLen) ? zip(lists) : cartesian(lists);
       const axisNames = new Set(axes.map(a => a.name));
       const tied = [];
       axes.forEach(a => { const dn = a.kind === 'record' ? a.name : a.dsName; if (dn && tied.indexOf(dn) < 0) tied.push(dn); });
@@ -3227,19 +3439,29 @@
 
     function savePlanFromPreview() {
       if (!loopCtx || !loopCtx.attempts.length) return;
-      let name = prompt('Save test plan as:', 'Plan ' + (loadPlans().length + 1));
+      // Prefer the builder's name field; fall back to a prompt when opened outside the builder.
+      const nameField = document.getElementById('planNameInput');
+      let name = nameField && nameField.value.trim()
+        ? nameField.value.trim()
+        : prompt('Save test plan as:', 'Plan ' + (loadPlans().length + 1));
       if (name === null) return;
+      const id = (planBuilder && planBuilder.id) || ('plan_' + Date.now());
       const plan = {
-        id: 'plan_' + Date.now(),
-        name: name.trim() || 'Untitled Plan',
+        id,
+        name: (name || '').trim() || 'Untitled Plan',
         tied: loopCtx.tied || [],          // dataset names this plan depends on
+        mode: loopCombineMode(),           // 'matrix' | 'paired' (informational; attempts are baked)
         attempts: loopCtx.attempts,        // each { caseId, caseName, vars, display }
         createdAt: Date.now()
       };
-      const plans = loadPlans(); plans.push(plan); savePlans(plans);
+      const plans = loadPlans();
+      const idx = plans.findIndex(x => x.id === id);
+      if (idx >= 0) plans[idx] = plan; else plans.push(plan);
+      savePlans(plans);
       closeLoopPreview();
+      showPlanPane('list');
       renderSavedPlans();
-      alert('Saved “' + plan.name + '” with ' + plan.attempts.length + ' attempts.');
+      appAlert('Plan saved', 'Saved “' + plan.name + '” with ' + plan.attempts.length + ' run' + (plan.attempts.length !== 1 ? 's' : '') + '.');
     }
 
     function planMissingDatasets(plan) {
@@ -3296,6 +3518,13 @@
       const name = document.getElementById('planNameInput').value.trim();
       if (!name) { appAlert('Name required', 'Give the test plan a name.'); return; }
       if (!planSelected.size) { appAlert('No test cases', 'Select at least one test case for this plan.'); return; }
+      // Looping plans are saved from the run preview (which bakes the attempts), not here.
+      const loopCb = document.getElementById('planLoop');
+      if (loopCb && loopCb.checked) {
+        planTab('data');
+        appAlert('Use Preview runs', 'This plan loops over list variables. Open the Data set tab and use “Preview runs”, then “Save plan”.');
+        return;
+      }
       // Make sure the resolver reflects the current selection, then require full resolution.
       const { need } = planVariables();
       if (need.length) {
@@ -3341,9 +3570,27 @@
       const p = loadPlans().find(x => x.id === id); if (!p) return;
       // The plan baked in a snapshot of every value, so it always runs — even if a source
       // dataset was later deleted or updated. The dot/pill flags that for the user.
+      if (p.attempts) {   // looping plan: replay the baked attempts (each is one run)
+        const live = new Set(loadStore().map(c => c.id));
+        if (!p.attempts.some(a => live.has(a.caseId))) {
+          appAlert('No test cases', 'The test case in this plan no longer exists.'); return;
+        }
+        runPlanLoopExecute(p.attempts); return;
+      }
       const cases = loadStore().filter(c => (p.caseIds || []).indexOf(c.id) >= 0);
       if (!cases.length) { appAlert('No test cases', 'The test cases in this plan no longer exist.'); return; }
       runPlanExecute(cases, p.values || {});
+    }
+    // Compact relative time, e.g. "just now", "5 min ago", "3 days ago".
+    function relTime(ts) {
+      if (!ts) return 'recently';
+      const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+      if (s < 45) return 'just now';
+      const m = Math.floor(s / 60); if (m < 60) return m + ' min ago';
+      const h = Math.floor(m / 60); if (h < 24) return h + ' hour' + (h !== 1 ? 's' : '') + ' ago';
+      const d = Math.floor(h / 24); if (d < 30) return d + ' day' + (d !== 1 ? 's' : '') + ' ago';
+      const mo = Math.floor(d / 30); if (mo < 12) return mo + ' month' + (mo !== 1 ? 's' : '') + ' ago';
+      return Math.floor(mo / 12) + ' year' + (Math.floor(mo / 12) !== 1 ? 's' : '') + ' ago';
     }
     function renderSavedPlans() {
       const list = document.getElementById('savedPlansList');
@@ -3369,6 +3616,7 @@
             (missing.length ? '<span class="ds-dot" title=""></span>'
               : outdated.length ? '<span class="ds-dot updated" title=""></span>' : '') +
           '</div>' +
+          '<div class="plan-card-chips"></div>' +
           '<div class="ds-card-meta"></div>' +
           '<div class="ds-card-foot">' +
             '<button class="btn primary plan-run-btn" data-act="run"><span data-ico="play" data-ico-fill="1"></span> Run</button>' +
@@ -3376,8 +3624,17 @@
           '</div>';
         card.querySelector('.ds-card-name').textContent = p.name;
         card.querySelector('.ds-card-name').title = p.name;
-        card.querySelector('.ds-card-meta').textContent = caseN + (caseN === 1 ? ' test case' : ' test cases') +
-          (p.tied && p.tied.length ? ' · ' + p.tied.join(', ') : '');
+        // Chips: run/case count, loop mode (if looping), and each tied dataset.
+        const chips = [];
+        if (p.attempts) {
+          chips.push('<span class="plan-chip runs">' + p.attempts.length + ' run' + (p.attempts.length !== 1 ? 's' : '') + '</span>');
+          chips.push('<span class="plan-chip loop">' + (p.mode === 'paired' ? 'paired' : 'matrix') + '</span>');
+        } else {
+          chips.push('<span class="plan-chip runs">' + caseN + ' case' + (caseN !== 1 ? 's' : '') + '</span>');
+        }
+        (p.tied || []).forEach(n => chips.push('<span class="plan-chip ds">' + escapeHtml(n) + '</span>'));
+        card.querySelector('.plan-card-chips').innerHTML = chips.join('');
+        card.querySelector('.ds-card-meta').textContent = 'Created ' + relTime(p.createdAt);
         // Status is shown via the dot/pill hover only — the plan always runs on its saved snapshot.
         if (missing.length) {
           card.querySelector('.ds-dot').title = outdated.length
@@ -4163,7 +4420,15 @@
       if (locals.length) {
         any = true;
         const h = document.createElement('div'); h.className = 'rd-group'; h.textContent = 'Local (SET)'; list.appendChild(h);
-        locals.forEach(n => list.appendChild(browsePickRow(n, setValueOf(setMap.get(n)), n)));
+        locals.forEach(n => {
+          const val = setValueOf(setMap.get(n));
+          list.appendChild(browsePickRow(n, val, n));         // whole value (all items, for a list)
+          if (Array.isArray(val)) {                            // + one pick per index → {{n[i]}} (0-based)
+            const box = document.createElement('div'); box.className = 'rd-box';
+            val.forEach((item, i) => box.appendChild(browsePickRow(n + '[' + i + ']', item, n + '[' + i + ']')));
+            list.appendChild(box);
+          }
+        });
       }
       // Datasets: nested boxes when browsing, flat matches when searching.
       loadDatasets().forEach(ds => {
@@ -5002,14 +5267,14 @@
       const vars = env.vars || {};
       if (ref[0] === '@') {
         // dataset ref: the chosen record is bound under the '@file' key; walk its path.
-        const segs = ref.slice(1).split('.');
+        const segs = refToSegs(ref.slice(1));
         const rec = vars['@' + segs[0]];
         if (rec === undefined) return undefined;
         const path = segs.slice(1);
         return path.length ? getPath(rec, path) : rec;
       }
       if (Object.prototype.hasOwnProperty.call(vars, ref)) return vars[ref];
-      const segs = ref.split('.');
+      const segs = refToSegs(ref);
       if (segs.length > 1 && Object.prototype.hasOwnProperty.call(vars, segs[0])) {
         const v = getPath(vars[segs[0]], segs.slice(1));
         if (v !== undefined) return v;
