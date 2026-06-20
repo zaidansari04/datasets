@@ -292,6 +292,44 @@
     }
     .ds-lock-badge .ico { width: 12px; height: 12px; }
 
+    /* Run history */
+    .run-card { border: 1px solid var(--border); border-radius: 12px; background: #fff; margin-bottom: 10px; overflow: hidden; }
+    .run-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; }
+    .run-head:hover { background: var(--bg-soft); }
+    .run-status { width: 24px; height: 24px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+    .run-status .ico { width: 15px; height: 15px; }
+    .run-status.ok { background: var(--green); }
+    .run-status.fail { background: var(--red); }
+    .run-head-main { flex: 1; min-width: 0; }
+    .run-title { font-weight: 600; font-size: 14.5px; color: var(--text); }
+    .run-sub { font-size: 12.5px; color: var(--text-faint); margin-top: 1px; }
+    .run-kind { flex: none; font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 999px; background: var(--bg-soft); color: var(--text-muted); border: 1px solid var(--border); }
+    .run-kind.lease { background: var(--purple-soft); color: var(--purple); border-color: #e4dcff; }
+    .run-kind.loop { background: #ecfdf5; color: #047857; border-color: #c7f0dd; }
+    .run-count { flex: none; font-family: var(--mono); font-size: 12.5px; color: var(--text-muted); }
+    .run-chev { color: var(--text-faint); transition: transform .15s; display: inline-flex; }
+    .run-chev .ico { width: 16px; height: 16px; }
+    .run-card.open .run-chev { transform: rotate(180deg); }
+    .run-items { display: none; border-top: 1px solid var(--border); padding: 6px 0; }
+    .run-card.open .run-items { display: block; }
+    .run-item { display: flex; align-items: baseline; gap: 10px; padding: 7px 16px 7px 18px; font-size: 13px; }
+    .run-item + .run-item { border-top: 1px solid var(--bg-soft); }
+    .run-item-mark { flex: none; font-weight: 700; }
+    .run-item.pass .run-item-mark { color: var(--green); }
+    .run-item.fail .run-item-mark { color: var(--red); }
+    .run-item-label { font-weight: 600; color: var(--text); flex: none; }
+    .run-item-detail { font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .run-events { margin: 2px 0 6px 44px; border-left: 2px solid var(--border); padding: 2px 0; }
+    .run-event { display: flex; align-items: baseline; gap: 8px; padding: 3px 0 3px 12px; font-size: 12px; }
+    .run-event-time { font-family: var(--mono); font-size: 11px; color: var(--text-faint); flex: none; min-width: 58px; }
+    .run-event-ico { flex: none; }
+    .run-event-text { font-family: var(--mono); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .run-event.wait .run-event-text { color: var(--orange); }
+    .run-event.lock .run-event-text { color: var(--purple); }
+    .run-event.release .run-event-text { color: var(--text-faint); }
+
     /* Locks panel */
     .locks-card {
       border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
@@ -490,15 +528,23 @@
     }
     .plan-pool-head { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600; color: var(--purple); }
     .plan-pool-ico .ico { width: 16px; height: 16px; }
-    .plan-pool-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-    .plan-pool-select {
-      height: 38px; min-width: 220px; padding: 0 12px;
-      border: 1px solid var(--border-strong); border-radius: 9px; background: #fff;
-      font-family: var(--mono); font-size: 13.5px; color: var(--text); cursor: pointer;
+    .plan-pool-hint { font-size: 12.5px; color: var(--text-muted); margin: 8px 0 10px; }
+    .plan-pool-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+    .plan-pool-opt {
+      display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+      padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 10px; background: #fff;
+      transition: border-color .15s, box-shadow .15s, background .15s;
     }
-    .plan-pool-select:focus { outline: none; border-color: var(--purple); }
-    .plan-pool-meta { font-family: var(--mono); font-size: 12.5px; color: var(--text-muted); }
-    .plan-pool-hint { font-size: 12.5px; color: var(--text-muted); margin-top: 8px; }
+    .plan-pool-opt:hover { border-color: var(--purple-light); }
+    .plan-pool-opt.sel { border-color: var(--purple); background: #faf8ff; box-shadow: 0 0 0 2px rgba(109,40,217,0.08); }
+    .plan-pool-opt.conflict { border-color: var(--orange); background: #fff7ed; }
+    .plan-pool-opt input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--purple); cursor: pointer; flex: none; }
+    .plan-pool-opt-body { min-width: 0; }
+    .plan-pool-name { font-family: var(--mono); font-weight: 600; font-size: 13.5px; color: var(--text); }
+    .plan-pool-vars { font-family: var(--mono); font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .plan-pool-size { font-size: 11px; color: var(--text-faint); margin-top: 1px; }
+    .plan-pool-dual { color: var(--text-faint); font-style: italic; }
+    .plan-pool-warn { font-size: 12.5px; color: var(--orange); margin-top: 10px; font-weight: 600; }
 
     /* Test plan loop config (Data set tab) */
     .plan-loop-bar {
@@ -609,23 +655,40 @@
     /* Conflict-aware resolve: master–detail layout */
     .resolve-split { display: flex; gap: 18px; flex: 1; min-height: 0; }
     .resolve-list {
-      width: 230px; flex: none; overflow-y: auto;
+      width: 264px; flex: none; overflow-y: auto;
       display: flex; flex-direction: column; gap: 4px;
       padding: 8px; background: var(--bg-soft);
       border: 1px solid var(--border); border-radius: 12px;
     }
+    .rv-list-head {
+      position: sticky; top: -8px; z-index: 1; margin: -8px -8px 4px; padding: 11px 12px;
+      background: var(--bg-soft); border-bottom: 1px solid var(--border);
+      font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;
+    }
+    .rv-list-head b { color: var(--orange); font-weight: 700; }
+    .rv-list-head.done { color: var(--green); font-weight: 600; }
+    .rv-list-head.done .ico { width: 15px; height: 15px; color: var(--green); }
     .resolve-detail { flex: 1; min-width: 0; overflow-y: auto; padding: 2px; }
     .rv-mark { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center;
       justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex: none; }
     .rv-mark.ok { background: var(--green); }
     .rv-mark.conflict { background: var(--orange); }
     .rv-mark.manual { background: var(--orange); }
-    .rv-li { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid transparent;
-      border-radius: 9px; cursor: pointer; background: none; text-align: left; width: 100%; }
-    .rv-li:hover { background: #fff; }
-    .rv-li.sel { background: var(--purple-soft); border-color: #c4b5fd; }
-    .rv-li .rv-name { font-family: var(--mono); font-weight: 600; font-size: 13.5px; color: var(--text);
+    .rv-li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 11px; border: 1px solid transparent;
+      border-radius: 9px; cursor: pointer; background: #fff; text-align: left; width: 100%;
+      box-shadow: var(--shadow-sm); }
+    .rv-li:hover { border-color: var(--border-strong); }
+    .rv-li.sel { background: var(--purple-soft); border-color: var(--purple); box-shadow: 0 0 0 2px rgba(109,40,217,0.08); }
+    .rv-li .rv-mark { margin-top: 1px; }
+    .rv-li-body { min-width: 0; flex: 1; }
+    .rv-li .rv-name { display: block; font-family: var(--mono); font-weight: 600; font-size: 13.5px; color: var(--text);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rv-li-sub { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rv-li-lock { color: var(--purple); font-weight: 600; }
+    .rv-li-need { color: var(--orange); }
+    .rv-li.done .rv-li-sub { color: var(--green); }
+    .rv-li.done .rv-li-lock { color: var(--purple); }
     .rv-d-title { font-family: var(--mono); font-weight: 700; font-size: 18px; color: var(--text); margin-bottom: 4px; }
     .rv-d-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
     .rv-name { font-family: var(--mono); font-weight: 600; font-size: 13px; }
@@ -643,6 +706,22 @@
     .rv-manual input:focus { border-color: var(--purple); outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,0.12); }
     .rv-manual-label { font-size: 12px; color: var(--text-faint); font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px; }
+    /* Lock-to-pool options inside the variable resolver */
+    .rv-lock-wrap { margin-bottom: 14px; }
+    .rv-lock-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+    .rv-lock-opt {
+      display: flex; align-items: center; gap: 8px; text-align: left; cursor: pointer;
+      padding: 9px 11px; border: 1px solid var(--border-strong); border-radius: 10px; background: #fff;
+      font-family: var(--mono); box-shadow: var(--shadow-sm); transition: border-color .15s, background .15s;
+    }
+    .rv-lock-opt:hover { border-color: var(--purple-light); background: var(--purple-soft); }
+    .rv-lock-opt.sel { background: var(--purple); border-color: var(--purple); color: #fff; }
+    .rv-lock-opt .ico { width: 14px; height: 14px; flex: none; }
+    .rv-lock-name { font-weight: 600; font-size: 13px; }
+    .rv-lock-meta { font-size: 11px; color: var(--text-faint); margin-left: auto; white-space: nowrap; }
+    .rv-lock-opt.sel .rv-lock-meta { color: rgba(255,255,255,0.85); }
+    .rv-lock-note { font-size: 12.5px; color: #047857; background: #ecfdf5; border: 1px solid #c7f0dd;
+      border-radius: 9px; padding: 8px 11px; margin-bottom: 14px; }
     /* Pin the custom-value entry to the bottom of the (scrolling) detail pane. */
     .rv-manual-wrap {
       position: sticky; bottom: 0; z-index: 2;
@@ -1761,6 +1840,10 @@
         <span class="icon" data-ico="lock"></span>
         <span>Locks</span>
       </div>
+      <div class="nav-item" id="navHistory" onclick="switchView('history')">
+        <span class="icon" data-ico="clock"></span>
+        <span>Run History</span>
+      </div>
     </nav>
   </aside>
 
@@ -1966,17 +2049,6 @@
           <div class="plan-cases" id="planCases"></div>
         </div>
         <div id="planTabData" style="display:none; height:100%;">
-          <div class="plan-pool-bar" id="planPoolBar" style="display:none;">
-            <div class="plan-pool-head">
-              <span class="plan-pool-ico" data-ico="lock"></span>
-              <span>Lockable pool</span>
-            </div>
-            <div class="plan-pool-row">
-              <select id="planPoolSelect" class="plan-pool-select" onchange="onPlanPoolChange()"></select>
-              <span class="plan-pool-meta" id="planPoolMeta"></span>
-            </div>
-            <div class="plan-pool-hint" id="planPoolHint"></div>
-          </div>
           <div class="plan-loop-bar">
             <label class="plan-loop-toggle">
               <input type="checkbox" id="planLoop" onchange="renderPlanLoop()" />
@@ -1994,7 +2066,7 @@
               </div>
             </div>
           </div>
-          <div class="resolve-hint">Every variable used by the selected cases must be resolved. Pick a value on the left, resolve it on the right.</div>
+          <div class="resolve-hint">Every variable must be resolved. Pick a variable on the left; on the right choose a value from a dataset, <b>🔒 lock</b> it to a lockable pool, or type a custom value.</div>
           <div class="resolve-split" id="planResolveSplit">
             <div class="resolve-list" id="planResolveList"></div>
             <div class="resolve-detail" id="planResolveDetail"></div>
@@ -2023,6 +2095,18 @@
      </div>
      <div class="plans-body"><div id="locksBody"></div></div>
    </div><!-- /locksView -->
+
+   <!-- ===== Run history view ===== -->
+   <div class="view" id="historyView">
+     <div class="projects-header">
+       <div>
+         <h1 class="projects-title">Run History</h1>
+         <p class="projects-sub">Every test-plan run, newest first. Click a run to see its cases.</p>
+       </div>
+       <button class="btn" onclick="clearRunHistory()"><span data-ico="trash"></span> Clear history</button>
+     </div>
+     <div class="plans-body"><div id="historyBody"></div></div>
+   </div><!-- /historyView -->
 
    <!-- Test plan attempts modal -->
    <div class="modal-overlay" id="loopPreviewModal" onclick="if(event.target===this)closeLoopPreview()">
@@ -3193,6 +3277,76 @@
       renderDatasetPager(pages, items.length);
     }
     // ----- Locks panel: live view of every lockable pool's leases -----
+    // ----- Run history view -----
+    function clearRunHistory() {
+      if (!loadRunLog().length) return;
+      appConfirm({ title: 'Clear run history', message: 'Delete all recorded test-plan runs? This cannot be undone.', confirmLabel: 'Clear' },
+        () => { saveRunLog([]); renderRunHistory(); });
+    }
+    function renderRunHistory() {
+      const body = document.getElementById('historyBody');
+      if (!body) return;
+      const runs = loadRunLog();
+      if (!runs.length) {
+        body.innerHTML = '<div class="projects-empty"><div class="big">' + svgIcon('clock') +
+          '</div><div class="sub">No runs yet. Run a test plan and it will show up here.</div></div>';
+        return;
+      }
+      body.innerHTML = '';
+      runs.forEach(run => {
+        const failed = run.total - run.passed;
+        const ok = failed === 0;
+        const dur = run.finishedAt && run.startedAt ? Math.max(1, Math.round((run.finishedAt - run.startedAt) / 1000)) + 's' : '';
+        const card = document.createElement('div');
+        card.className = 'run-card' + (run._open ? ' open' : '');
+        card.innerHTML =
+          '<div class="run-head">' +
+            '<span class="run-status ' + (ok ? 'ok' : 'fail') + '">' + (ok ? svgIcon('check') : svgIcon('x')) + '</span>' +
+            '<div class="run-head-main">' +
+              '<div class="run-title"></div>' +
+              '<div class="run-sub"></div>' +
+            '</div>' +
+            '<span class="run-kind ' + escapeHtml(run.kind || '') + '">' + escapeHtml(run.kind || 'plan') + '</span>' +
+            '<span class="run-count">' + run.passed + '/' + run.total + ' passed</span>' +
+            '<span class="run-chev" data-ico="chevron-down"></span>' +
+          '</div>' +
+          '<div class="run-items"></div>';
+        card.querySelector('.run-title').textContent = run.plan || 'Test plan';
+        card.querySelector('.run-sub').textContent = relTime(run.finishedAt) +
+          (dur ? ' · ' + dur : '') + (failed ? ' · ' + failed + ' failed' : '') +
+          (run.pools && run.pools.length ? ' · 🔒 ' + run.pools.join(', ') : '');
+        const itemsEl = card.querySelector('.run-items');
+        (run.items || []).forEach(it => {
+          const row = document.createElement('div');
+          row.className = 'run-item ' + (it.status === 'pass' ? 'pass' : 'fail');
+          row.innerHTML = '<span class="run-item-mark">' + (it.status === 'pass' ? '✓' : '✗') + '</span>' +
+            '<span class="run-item-label"></span><span class="run-item-detail"></span>';
+          row.querySelector('.run-item-label').textContent = it.label || '';
+          row.querySelector('.run-item-detail').textContent = it.detail || '';
+          itemsEl.appendChild(row);
+          // Lease lifecycle (waiting → locked → released) for this case, if any.
+          if (it.events && it.events.length) {
+            const tl = document.createElement('div'); tl.className = 'run-events';
+            it.events.forEach(ev => {
+              const e = document.createElement('div'); e.className = 'run-event ' + ev.type;
+              let icon, text;
+              if (ev.type === 'wait') { icon = '⏳'; text = 'waiting for ' + (ev.pools || []).join(', '); }
+              else if (ev.type === 'lock') { icon = '🔒'; text = 'locked ' + ev.pool + ' #' + ev.index + (ev.values ? ' · ' + ev.values : ''); }
+              else { icon = '🔓'; text = 'released ' + ev.pool + ' #' + ev.index; }
+              e.innerHTML = '<span class="run-event-time"></span><span class="run-event-ico">' + icon + '</span><span class="run-event-text"></span>';
+              e.querySelector('.run-event-time').textContent = hms(ev.at);
+              e.querySelector('.run-event-text').textContent = text;
+              tl.appendChild(e);
+            });
+            itemsEl.appendChild(tl);
+          }
+        });
+        card.querySelector('.run-head').onclick = () => { run._open = !run._open; card.classList.toggle('open', run._open); };
+        hydrateIcons(card);
+        body.appendChild(card);
+      });
+    }
+
     function renderLocks() {
       const body = document.getElementById('locksBody');
       if (!body) return;
@@ -3343,74 +3497,60 @@
       return loadStore().filter(c => planSelected.has(c.id));
     }
 
-    // Union of variables across selected cases, split into locally-SET vs needs-resolving.
-    function planVariables() {
-      const all = new Set(), setSomewhere = new Set(), need = [];
-      const cases = selectedCases();
-      cases.forEach(c => {
-        const setMap = parseSetMap(c.content);
-        refsInContent(c.content).forEach(r => {
-          all.add(r);
-          if (setMap.has(r)) setSomewhere.add(r);
-        });
-      });
-      // A variable needs resolving if at least one selected case references it WITHOUT setting it.
-      // Variables provided by a lockable pool are leased at run time, so they don't need resolving.
-      cases.forEach(c => {
-        const setMap = parseSetMap(c.content);
-        refsInContent(c.content).forEach(r => {
-          if (!setMap.has(r) && !isLockableVar(r) && need.indexOf(r) < 0) need.push(r);
-        });
-      });
-      return { all: Array.from(all), need, setSomewhere };
-    }
-    // True when a plain variable name is a column of some lockable dataset (leased, not resolved).
-    function isLockableVar(name) {
-      if (name.indexOf('.') >= 0) return false;
-      return lockableDatasets().some(ds => lockableCols(ds).includes(name));
+    // Variables that the currently SELECTED pools will lease for these cases (so: not resolved).
+    function leasedVars(cases) {
+      const refs = casePlainRefs(cases), set = new Set();
+      selectedPools(cases).forEach(ds => lockableCols(ds).forEach(c => { if (refs.has(c)) set.add(c); }));
+      return set;
     }
 
     /* ===== Test Plan builder (new flow) ===== */
     let planBuilder = null;   // { id, name } currently being edited
     let planSeed = null;      // { records:{'@file':rec}, values:{attr:val} } pre-fill for the resolver
-    let planPoolChoice = null; // chosen lockable dataset name when multiple pools could serve the cases
+    let planPools = new Set();   // chosen lockable pool names — a plan may lease from several at once
 
-    // Lockable pools whose columns are referenced by these cases (candidates to lease from).
-    function candidateLockablePools(cases) {
+    // The plain variables referenced across these cases.
+    function casePlainRefs(cases) {
       const refs = new Set();
       cases.forEach(c => refsInContent(c.content).forEach(r => { if (r.indexOf('.') < 0) refs.add(r); }));
+      return refs;
+    }
+    // Lockable pools whose columns are referenced by these cases (candidates to lease from).
+    function candidateLockablePools(cases) {
+      const refs = casePlainRefs(cases);
       return lockableDatasets().filter(ds => lockableCols(ds).some(col => refs.has(col)));
     }
-    // The pool to lease from: the user's pick if still valid, else the first candidate, else null.
-    function resolvePlanPool(cases, preferredName) {
-      const cands = candidateLockablePools(cases);
-      if (!cands.length) return null;
-      return (preferredName && cands.find(d => d.name === preferredName)) || cands[0];
+    // The chosen pools that are still valid candidates for these cases.
+    function selectedPools(cases) {
+      return candidateLockablePools(cases).filter(ds => planPools.has(ds.name));
     }
-    function onPlanPoolChange() {
-      planPoolChoice = document.getElementById('planPoolSelect').value || null;
-      renderPlanPool();
+    // Lockable pools that provide a given plain variable.
+    function poolsForAttr(attr) {
+      if (attr.indexOf('.') >= 0) return [];
+      return lockableDatasets().filter(ds => lockableCols(ds).includes(attr));
     }
-    // Show/populate the lockable-pool picker for the selected cases.
-    function renderPlanPool() {
-      const bar = document.getElementById('planPoolBar');
-      if (!bar) return;
-      const cases = selectedCases();
-      const cands = candidateLockablePools(cases);
-      if (!cands.length) { bar.style.display = 'none'; return; }
-      bar.style.display = '';
-      const chosen = resolvePlanPool(cases, planPoolChoice);
-      planPoolChoice = chosen ? chosen.name : null;        // normalize to a valid pool
-      const sel = document.getElementById('planPoolSelect');
-      sel.innerHTML = cands.map(ds =>
-        '<option value="' + escapeHtml(ds.name) + '">' + escapeHtml(ds.name) + '  (' + poolSize(ds) + ' rows)</option>').join('');
-      sel.value = planPoolChoice;
-      const cols = chosen ? lockableCols(chosen) : [];
-      document.getElementById('planPoolMeta').textContent =
-        '🔒 ' + poolSize(chosen) + ' rows · ' + cols.join(', ');
-      document.getElementById('planPoolHint').innerHTML = cands.length > 1
-        ? '<b>' + cands.length + ' pools</b> provide these variables — pick which one each run leases a row from.'
-        : 'These variables are leased one row per run from this pool.';
+    // The selected pool currently leasing this variable (or null).
+    function leasingPoolFor(attr) {
+      return poolsForAttr(attr).find(ds => planPools.has(ds.name)) || null;
+    }
+    // Lock a variable to a pool: select that pool (one pool per variable), drop any other pool
+    // that also provides it, and clear fixed values for every column the pool now leases (paired).
+    function lockVar(attr, poolName) {
+      poolsForAttr(attr).forEach(ds => planPools.delete(ds.name));   // one source per variable
+      planPools.add(poolName);
+      const pool = lockableDatasets().find(d => d.name === poolName);
+      if (pool) resolveItems.forEach(it => { if (it.type === 'value' && lockableCols(pool).includes(it.attr)) it.chosen = undefined; });
+      onLeaseChange();
+    }
+    function unlockVar(attr) {
+      poolsForAttr(attr).forEach(ds => planPools.delete(ds.name));
+      onLeaseChange();
+    }
+    // Re-render the resolver (and, in the plan builder, the loop/footer too).
+    function onLeaseChange() {
+      renderResolve();
+      if (resolveLeasing) { renderPlanLoop(); updatePlanFooter(); }
+      if (onResolveChange) onResolveChange(unresolvedCount());
     }
 
     function showPlanPane(which) {
@@ -3420,7 +3560,7 @@
     // Reset the loop config (axis selections + toggle) so it never leaks between plans.
     function resetPlanLoopState() {
       planLoopRoots.clear(); loopTouched.clear(); loopGroups.clear();
-      planPoolChoice = null;
+      planPools = new Set();
       const cb = document.getElementById('planLoop'); if (cb) cb.checked = false;
       const cfg = document.getElementById('planLoopConfig'); if (cfg) cfg.style.display = 'none';
     }
@@ -3446,7 +3586,8 @@
         (p.caseIds || []).forEach(cid => planSelected.add(cid));
         planSeed = planSeedFromValues(p.values || {});
       }
-      planPoolChoice = p.pool || null;   // restore the chosen lockable pool, if any
+      // Restore chosen lockable pools (array), tolerating the legacy single `pool` field.
+      planPools = new Set(p.pools || (p.pool ? [p.pool] : []));
       document.getElementById('planNameInput').value = p.name;
       showPlanPane('builder'); planTab('cases'); renderPlanCases();
     }
@@ -3463,7 +3604,7 @@
       document.querySelectorAll('.plan-build-tab').forEach(b => b.classList.toggle('active', b.dataset.ptab === tab));
       document.getElementById('planTabCases').style.display = tab === 'cases' ? '' : 'none';
       document.getElementById('planTabData').style.display = tab === 'data' ? 'flex' : 'none';
-      if (tab === 'data') { renderPlanPool(); openPlanResolve(); renderPlanLoop(); }
+      if (tab === 'data') { openPlanResolve(); renderPlanLoop(); }
       updatePlanFooter();
     }
 
@@ -3531,12 +3672,22 @@
       if (runBtn) runBtn.onclick = runPlanFromBuilder;
     }
 
+    // Every referenced ref a case doesn't SET — the full variable-first resolve list (includes
+    // pool-backed variables, which can be locked instead of resolved).
+    function planResolveRefs() {
+      const refs = [], seen = new Set();
+      selectedCases().forEach(c => {
+        const setMap = parseSetMap(c.content);
+        refsInContent(c.content).forEach(r => { if (!setMap.has(r) && !seen.has(r)) { seen.add(r); refs.push(r); } });
+      });
+      return refs;
+    }
     // Render the resolve master–detail inside the builder's Data set tab.
     function openPlanResolve() {
-      const { need } = planVariables();
+      const refs = planResolveRefs();
       const empty = document.getElementById('planResolveEmpty');
       const split = document.getElementById('planResolveSplit');
-      if (!need.length) {
+      if (!refs.length) {
         resolveItems = [];
         split.style.display = 'none'; empty.style.display = '';
         document.getElementById('planResolveList').innerHTML = '';
@@ -3545,7 +3696,8 @@
       }
       split.style.display = 'flex'; empty.style.display = 'none';
       resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
-      resolveItems = buildResolveItems(need, planSeed);
+      resolveLeasing = true;   // plan builder: variables can be locked to pools
+      resolveItems = buildResolveItems(refs, planSeed);
       onResolveChange = () => { planSeed = mergeSeed(); };   // remember picks across tab switches / save
       const firstUnresolved = resolveItems.findIndex(it => itemStatus(it) !== 'ok');
       resolveSelected = firstUnresolved >= 0 ? firstUnresolved : 0;
@@ -3647,13 +3799,14 @@
         named.add(root);
       });
       const vseen = new Set();
+      const leased = leasedVars(selectedCases());
       selectedCases().forEach(c => {
         const setMap = parseSetMap(c.content);
         refsInContent(c.content).forEach(r => {
           if (r.indexOf('.') >= 0) return;            // plain values only
           if (named.has(r) || vseen.has(r)) return;
           if (setMap.has(r)) return;                  // SET in case
-          if (isLockableVar(r)) return;               // leased from a lockable pool, not looped
+          if (leased.has(r)) return;                  // leased from a SELECTED lockable pool, not looped
           // Only LIST-valued variables are loopable. A scalar (item_a:"pizza") is not an axis —
           // it stays fixed across runs and is resolved through the normal resolve step.
           if (!refIsListAttr(r)) return;
@@ -3753,14 +3906,21 @@
         if (cases.length !== 1) { appAlert('One test case', 'Looping currently supports exactly one test case. Select a single case, then loop.'); return; }
         startPlanLoop(cases); return;
       }
-      const lockDs = resolvePlanPool(cases, planPoolChoice);   // lease mode: leased at run, user-chosen pool
-      if (lockDs) {
-        const nm = (document.getElementById('planNameInput').value || '').trim() || 'Plan';
-        runPlanLeased({ name: nm, pool: lockDs.name }, cases, lockDs, {}); return;
+      // Resolve everything inline (values + pool locks) via the builder's variable-first resolver.
+      const refs = planResolveRefs();
+      resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
+      resolveLeasing = true;
+      resolveItems = refs.length ? buildResolveItems(refs, planSeed) : [];
+      if (unresolvedCount() > 0) {
+        planTab('data');
+        appAlert('Unresolved variables', unresolvedCount() + ' variable(s) still need a value or a pool lock. Resolve them in the Data set tab first.');
+        return;
       }
-      const { need } = planVariables();
-      if (need.length) openResolveModal(need, ov => runPlanExecute(cases, ov));
-      else runPlanExecute(cases, {});
+      const overrides = collectPlanResolution().values;   // fixed picks; leased vars come from pools
+      const pools = selectedPools(cases);
+      const nm = (document.getElementById('planNameInput').value || '').trim() || 'Plan';
+      if (pools.length) runPlanLeased({ name: nm, pools: pools.map(d => d.name) }, cases, pools, overrides);
+      else runPlanExecute(cases, overrides, nm);
     }
 
     const PLAN_ATTEMPT_CAP = 100;
@@ -3834,23 +3994,31 @@
       document.getElementById('loopPreviewBody').innerHTML = html;
     }
     function closeLoopPreview() { document.getElementById('loopPreviewModal').classList.remove('open'); }
-    function runLoopFromPreview() { closeLoopPreview(); if (loopCtx) runPlanLoopExecute(loopCtx.attempts); }
+    function runLoopFromPreview() {
+      closeLoopPreview();
+      const nm = (document.getElementById('planNameInput').value || '').trim() || 'Loop plan';
+      if (loopCtx) runPlanLoopExecute(loopCtx.attempts, nm);
+    }
 
-    async function runPlanLoopExecute(attempts) {
+    async function runPlanLoopExecute(attempts, label) {
       if (isRunning) return;
       switchView('editor');
       isRunning = true; setRunning(true);
       logsBody.innerHTML = '';
       appendLog('Plan started · ' + attempts.length + ' attempt' + (attempts.length !== 1 ? 's' : ''), 'info');
 
+      const startedAt = Date.now(), items = [];
       let passed = 0, ran = 0;
       for (let i = 0; i < attempts.length; i++) {
         const att = attempts[i];
         const c = loadStore().find(x => x.id === att.caseId);
-        const label = '— Attempt ' + (i + 1) + '/' + attempts.length + ' · <b>' + escapeHtml(att.caseName) + '</b> · ' +
+        const dataStr = Object.keys(att.display).map(k => k + '=' + att.display[k]).join(', ');
+        const itemLabel = att.caseName + '  #' + (i + 1);
+        const label2 = '— Attempt ' + (i + 1) + '/' + attempts.length + ' · <b>' + escapeHtml(att.caseName) + '</b> · ' +
           Object.keys(att.display).map(k => escapeHtml(k) + '=' + escapeHtml(att.display[k])).join(', ');
-        if (!c) { appendLog(label, 'info'); appendLog('test case was deleted — skipped', 'error'); continue; }
-        appendLog(label, 'info');
+        if (!c) { appendLog(label2, 'info'); appendLog('test case was deleted — skipped', 'error');
+          items.push({ label: itemLabel, status: 'fail', detail: 'test case was deleted' }); continue; }
+        appendLog(label2, 'info');
         ran++;
 
         const steps = c.content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
@@ -3865,14 +4033,38 @@
           appendLog('<span class="log-idx">' + (s + 1) + '</span><span class="log-cmd">' +
             escapeHtml(cmd) + '</span>' + escapeHtml(rest) + '<span class="log-pass">✓</span>', 'step');
         }
+        items.push({ label: itemLabel, status: 'pass', detail: dataStr });
         passed++;
       }
       await sleep(300);
       appendLog('Plan finished · ' + passed + '/' + ran + ' attempts passed', 'success');
+      recordRun({ plan: label || 'Loop plan', kind: 'loop', startedAt, items });
       setRunning(false); isRunning = false;
     }
 
     /* ----- Saved test plans (persistent) ----- */
+    /* ----- Run history: every test-plan run is recorded here (newest first) ----- */
+    const RUNLOG_KEY = 'drizz.runlog';
+    const RUNLOG_CAP = 100;
+    let runSeq = 0;
+    function loadRunLog() { try { return JSON.parse(localStorage.getItem(RUNLOG_KEY)) || []; } catch (e) { return []; } }
+    function saveRunLog(l) { localStorage.setItem(RUNLOG_KEY, JSON.stringify(l)); }
+    // rec: { plan, kind, startedAt, items:[{label, status:'pass'|'fail', detail}] }
+    function recordRun(rec) {
+      const items = rec.items || [];
+      const full = Object.assign({
+        id: 'run_' + Date.now() + '_' + (++runSeq),
+        finishedAt: Date.now(),
+        total: items.length,
+        passed: items.filter(i => i.status === 'pass').length
+      }, rec);
+      const log = loadRunLog();
+      log.unshift(full);
+      if (log.length > RUNLOG_CAP) log.length = RUNLOG_CAP;
+      saveRunLog(log);
+      if (typeof renderRunHistory === 'function') renderRunHistory();
+    }
+
     const PLAN_KEY = 'drizz.plans';
     function loadPlans() { try { return JSON.parse(localStorage.getItem(PLAN_KEY)) || []; } catch (e) { return []; } }
     function savePlans(p) { localStorage.setItem(PLAN_KEY, JSON.stringify(p)); }
@@ -3965,28 +4157,26 @@
         appAlert('Use Preview runs', 'This plan loops over list variables. Open the Data set tab and use “Preview runs”, then “Save plan”.');
         return;
       }
-      // Make sure the resolver reflects the current selection, then require full resolution.
-      const { need } = planVariables();
-      if (need.length) {
-        resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
-        resolveItems = buildResolveItems(need, planSeed);   // planSeed holds the user's picks
-        if (unresolvedCount() > 0) {
-          planTab('data');
-          appAlert('Unresolved variables', unresolvedCount() + ' variable(s) still need a value. Resolve them in the Data set tab before saving.');
-          return;
-        }
-      } else {
-        resolveItems = [];
+      // Build the variable-first resolver and require every variable to be resolved (a value) or
+      // locked to a pool before saving.
+      const refs = planResolveRefs();
+      resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
+      resolveLeasing = true;
+      resolveItems = refs.length ? buildResolveItems(refs, planSeed) : [];
+      if (unresolvedCount() > 0) {
+        planTab('data');
+        appAlert('Unresolved variables', unresolvedCount() + ' variable(s) still need a value or a pool lock. Resolve them in the Data set tab before saving.');
+        return;
       }
       const { values, tied } = collectPlanResolution();
-      // Persist the chosen lockable pool (if these cases lease from one) and tie it too.
-      const poolDs = resolvePlanPool(selectedCases(), planPoolChoice);
-      if (poolDs && tied.indexOf(poolDs.name) < 0) tied.push(poolDs.name);
+      // Persist the chosen lockable pools (if these cases lease from any) and tie them too.
+      const pools = selectedPools(selectedCases());
+      pools.forEach(d => { if (tied.indexOf(d.name) < 0) tied.push(d.name); });
       // Snapshot each tied dataset's version, so we can flag "updated" later.
       const tiedStamps = {};
       loadDatasets().forEach(d => { if (tied.indexOf(d.name) >= 0) tiedStamps[d.name] = d.updatedAt; });
       const plan = { id: planBuilder.id, name, caseIds: Array.from(planSelected), values, tied, tiedStamps,
-                     pool: poolDs ? poolDs.name : undefined, createdAt: Date.now() };
+                     pools: pools.length ? pools.map(d => d.name) : undefined, createdAt: Date.now() };
       const plans = loadPlans();
       const idx = plans.findIndex(x => x.id === plan.id);
       if (idx >= 0) plans[idx] = plan; else plans.push(plan);
@@ -4019,74 +4209,104 @@
         if (!p.attempts.some(a => live.has(a.caseId))) {
           appAlert('No test cases', 'The test case in this plan no longer exists.'); return;
         }
-        runPlanLoopExecute(p.attempts); return;
+        runPlanLoopExecute(p.attempts, p.name); return;
       }
       const cases = loadStore().filter(c => (p.caseIds || []).indexOf(c.id) >= 0);
       if (!cases.length) { appAlert('No test cases', 'The test cases in this plan no longer exist.'); return; }
-      if (p.pool) {
-        // The plan was saved to lease from a specific pool — fail loudly if it's gone, never
-        // silently fall back to a different pool.
-        const exact = lockableDatasets().find(d => d.name === p.pool);
-        if (!exact) {
-          appAlert('Pool no longer exists', 'This plan leases from “' + p.pool +
-            '”, which was deleted, renamed, or is no longer lockable. Open the plan and choose a pool.');
+      // Pools this plan was saved to lease from (array; tolerate the legacy single `pool` field).
+      const want = p.pools || (p.pool ? [p.pool] : []);
+      if (want.length) {
+        const live = lockableDatasets();
+        const pools = want.map(n => live.find(d => d.name === n)).filter(Boolean);
+        const missing = want.filter(n => !live.some(d => d.name === n));
+        if (missing.length) {   // fail loudly — never silently lease from a different/zero pool
+          appAlert('Pool no longer exists', 'This plan leases from ' + missing.map(n => '“' + n + '”').join(', ') +
+            ', which was deleted, renamed, or is no longer lockable. Open the plan and choose pools.');
           return;
         }
-        runPlanLeased(p, cases, exact, p.values || {}); return;
+        runPlanLeased(p, cases, pools, p.values || {}); return;
       }
-      const lockDs = resolvePlanPool(cases, null);   // legacy/no saved pool → infer a candidate
-      if (lockDs) { runPlanLeased(p, cases, lockDs, p.values || {}); return; }
-      runPlanExecute(cases, p.values || {});
+      runPlanExecute(cases, p.values || {}, p.name);
     }
 
-    // Lease-mode plan run: every case runs concurrently, each leasing one row from the shared
-    // pool; cases wait when the pool is exhausted and release their row when done.
-    // Lockable variables referenced by these cases that the chosen pool does NOT provide —
-    // i.e. the cases span more than one pool, which we don't lease across.
-    function uncoveredPoolVars(cases, ds) {
-      const cols = lockableCols(ds), refs = new Set();
-      cases.forEach(c => refsInContent(c.content).forEach(r => { if (isLockableVar(r) && !cols.includes(r)) refs.add(r); }));
-      return Array.from(refs);
-    }
-    async function runPlanLeased(plan, cases, ds, overrides) {
-      // Guard: a case can only lease from ONE pool. Variables from another pool would go unresolved.
-      const uncovered = uncoveredPoolVars(cases, ds);
-      if (uncovered.length) {
-        appAlert('Variables span multiple pools',
-          'These cases also use lockable variables not in “' + ds.name + '”: ' + uncovered.join(', ') +
-          '. A plan can lease from only one pool — split the cases or move the variables into one pool.');
-        return;
+    // Lease-mode plan run: every case runs concurrently. A case leases one row from EACH pool it
+    // uses; it waits until ALL its rows are free, then runs, then releases them.
+
+    // Acquire a row from every pool at once, all-or-nothing, in a stable (name-sorted) order so
+    // concurrent cases can't deadlock. If any pool is full, release what we took and retry until
+    // the timeout. Returns an array of leases (one per pool), or throws on timeout.
+    async function acquireAll(pools, holder, opts) {
+      opts = opts || {};
+      const timeoutMs = opts.timeoutMs || 90000;
+      const ordered = pools.slice().sort((a, b) => a.name < b.name ? -1 : 1);
+      const start = Date.now();
+      let announced = false;
+      for (;;) {
+        const got = [];
+        let full = false;
+        for (const ds of ordered) {
+          const lease = tryAcquire(ds.name, ds, holder);
+          if (lease) { activeLeaseIds.add(lease.leaseId); got.push({ ds, lease }); }
+          else { full = true; break; }
+        }
+        if (!full) return got;
+        got.forEach(g => releaseLease(g.ds.name, g.lease.leaseId));   // don't hold rows while blocked
+        if (!announced) { announced = true; if (opts.onWait) opts.onWait(); }
+        if (Date.now() - start > timeoutMs)
+          throw new Error('No free value in pool' + (ordered.length > 1 ? 's' : '') + ' ' +
+            ordered.map(d => '“' + d.name + '”').join(', ') + ' after ' + Math.round(timeoutMs / 1000) + 's');
+        await sleep(400);
       }
+    }
+
+    async function runPlanLeased(plan, cases, pools, overrides) {
       switchView('editor');
       if (activeRuns === 0) logsBody.innerHTML = '';
       runStarted();
+      const startedAt = Date.now();
       try {
         const tag = (plan && plan.name) || 'Plan';
         appendLog('▶ <b>' + escapeHtml(tag) + '</b> · ' + cases.length + ' case' + (cases.length !== 1 ? 's' : '') +
-          ' · pool <b>' + escapeHtml(ds.name) + '</b> (' + poolSize(ds) + ' rows, ' +
-          Math.max(0, poolSize(ds) - leasedCount(ds.name)) + ' free)', 'info');
-        const cols = lockableCols(ds);
-        const results = await Promise.allSettled(cases.map(c => runLeasedCase(tag, c, ds, cols, overrides)));
-        const passed = results.filter(r => r.status === 'fulfilled' && r.value).length;
+          ' · pool' + (pools.length > 1 ? 's' : '') + ' ' +
+          pools.map(d => '<b>' + escapeHtml(d.name) + '</b> (' + poolSize(d) + ')').join(', '), 'info');
+        const results = await Promise.allSettled(cases.map(c => runLeasedCase(tag, c, pools, overrides)));
+        const items = results.map((r, i) => r.status === 'fulfilled' && r.value
+          ? r.value
+          : { label: cases[i].name, status: 'fail', detail: (r.reason && r.reason.message) || 'error' });
+        const passed = items.filter(it => it.status === 'pass').length;
         appendLog('■ <b>' + escapeHtml(tag) + '</b> finished · ' + passed + '/' + cases.length + ' passed', 'success');
+        recordRun({ plan: tag, kind: 'lease', startedAt, items, pools: pools.map(d => d.name) });
       } finally {
         runEnded();   // never leave the active-run counter stuck, even on an unexpected throw
       }
     }
-    async function runLeasedCase(planTag, c, ds, cols, overrides) {
+    async function runLeasedCase(planTag, c, pools, overrides) {
       const who = planTag + '·' + c.name;
       const pfx = '<span class="log-tag">' + escapeHtml(who) + '</span> ';
-      let lease = null;
+      // Only the pools this case actually references (a case may not use every plan pool).
+      const refs = casePlainRefs([c]);
+      const need = pools.filter(ds => lockableCols(ds).some(col => refs.has(col)));
+      const events = [];   // lease lifecycle for the run history: wait / lock / release
+      let leases = [];
       try {
-        lease = await acquireLease(ds.name, ds, who, {
-          timeoutMs: 90000,
-          onWait: () => appendLog(pfx + '⏳ waiting for a free value in “' + escapeHtml(ds.name) + '”…', 'muted')
-        });
-        appendLog(pfx + '🔒 leased <b>#' + lease.index + '</b> · ' +
-          cols.map(k => escapeHtml(k) + '=' + escapeHtml(displayVal(lease.row[k]))).join(', '), 'info');
+        if (need.length) {
+          leases = await acquireAll(need, who, {
+            timeoutMs: 90000,
+            onWait: () => {
+              events.push({ type: 'wait', at: Date.now(), pools: need.map(d => d.name) });
+              appendLog(pfx + '⏳ waiting for free values in ' +
+                need.map(d => '“' + escapeHtml(d.name) + '”').join(', ') + '…', 'muted');
+            }
+          });
+          leases.forEach(({ ds, lease }) => {
+            const vals = lockableCols(ds).map(k => k + '=' + displayVal(lease.row[k])).join(', ');
+            events.push({ type: 'lock', at: Date.now(), pool: ds.name, index: lease.index, values: vals });
+            appendLog(pfx + '🔒 ' + escapeHtml(ds.name) + ' #' + lease.index + ' · ' + escapeHtml(vals), 'info');
+          });
+        }
         const env = { vars: {}, datasets: loadDatasets(), rowMap: {} };
         if (overrides) Object.assign(env.vars, overrides);
-        cols.forEach(k => { env.vars[k] = lease.row[k]; });                 // leased row binds pool vars
+        leases.forEach(({ ds, lease }) => lockableCols(ds).forEach(k => { env.vars[k] = lease.row[k]; }));  // bind every leased row
         parseSetMap(c.content).forEach(v => { env.vars[v.name] = setValueOf(v); });  // case's own SET wins
         const steps = c.content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
         for (let s = 0; s < steps.length; s++) {
@@ -4097,13 +4317,25 @@
             escapeHtml(cmd) + '</span>' + escapeHtml(rest) + '<span class="log-pass">✓</span>', 'step');
         }
         appendLog(pfx + '✓ done', 'success');
-        return true;
+        const detail = leases.map(({ ds, lease }) =>
+          lockableCols(ds).map(k => k + '=' + displayVal(lease.row[k])).join(', ')).join(' · ');
+        return { label: c.name, status: 'pass', detail, events };
       } catch (e) {
         appendLog(pfx + '✗ ' + escapeHtml(e.message || String(e)), 'error');
-        return false;
+        return { label: c.name, status: 'fail', detail: e.message || String(e), events };
       } finally {
-        if (lease) { releaseLease(ds.name, lease.leaseId); appendLog(pfx + '🔓 released #' + lease.index, 'muted'); }
+        leases.forEach(({ ds, lease }) => {
+          events.push({ type: 'release', at: Date.now(), pool: ds.name, index: lease.index });
+          releaseLease(ds.name, lease.leaseId);
+          appendLog(pfx + '🔓 released ' + escapeHtml(ds.name) + ' #' + lease.index, 'muted');
+        });
       }
+    }
+    // A timestamp as HH:MM:SS (for the lease-event timeline).
+    function hms(ts) {
+      if (!ts) return '';
+      const d = new Date(ts), p = n => String(n).padStart(2, '0');
+      return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
     }
     // Compact relative time, e.g. "just now", "5 min ago", "3 days ago".
     function relTime(ts) {
@@ -4156,8 +4388,9 @@
         } else {
           chips.push('<span class="plan-chip runs">' + caseN + ' case' + (caseN !== 1 ? 's' : '') + '</span>');
         }
-        if (p.pool) chips.push('<span class="plan-chip pool">' + svgIcon('lock') + escapeHtml(p.pool) + '</span>');
-        (p.tied || []).filter(n => n !== p.pool).forEach(n => chips.push('<span class="plan-chip ds">' + escapeHtml(n) + '</span>'));
+        const poolNames = p.pools || (p.pool ? [p.pool] : []);
+        poolNames.forEach(n => chips.push('<span class="plan-chip pool">' + svgIcon('lock') + escapeHtml(n) + '</span>'));
+        (p.tied || []).filter(n => poolNames.indexOf(n) < 0).forEach(n => chips.push('<span class="plan-chip ds">' + escapeHtml(n) + '</span>'));
         card.querySelector('.plan-card-chips').innerHTML = chips.join('');
         card.querySelector('.ds-card-meta').textContent = 'Created ' + relTime(p.createdAt);
         // Status is shown via the dot/pill hover only — the plan always runs on its saved snapshot.
@@ -4176,7 +4409,7 @@
       });
     }
 
-    async function runPlanExecute(cases, overrides) {
+    async function runPlanExecute(cases, overrides, label) {
       if (isRunning) return;
       switchView('editor');           // logs live in the editor view
       isRunning = true;
@@ -4184,6 +4417,7 @@
       logsBody.innerHTML = '';
       appendLog('Plan started · ' + cases.length + ' test case' + (cases.length > 1 ? 's' : ''), 'info');
 
+      const startedAt = Date.now(), items = [];
       let passedCases = 0;
       for (const c of cases) {
         const steps = c.content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
@@ -4192,6 +4426,7 @@
         const bad = firstInvalidSet(c.content);
         if (bad) {
           appendLog('✗ ' + escapeHtml(c.name) + ' failed · ' + bad.name + ' is not valid ' + bad.type + ' (malformed JSON)', 'error');
+          items.push({ label: c.name, status: 'fail', detail: bad.name + ' is not valid ' + bad.type });
           continue;   // this case fails; move on
         }
 
@@ -4201,6 +4436,7 @@
         parseSetMap(c.content).forEach(v => { env.vars[v.name] = setValueOf(v); });
 
         const used = refsInContent(c.content);
+        const dataStr = used.map(r => r + '=' + displayVal(resolveRef(r, env))).join('  ');
         if (used.length) {
           appendLog('<span class="log-data">Data · ' + used.map(r =>
             '<b>' + escapeHtml(r) + '</b>=' + escapeHtml(displayVal(resolveRef(r, env)))).join('   ') + '</span>', '');
@@ -4215,11 +4451,13 @@
             escapeHtml(cmd) + '</span>' + escapeHtml(rest) + '<span class="log-pass">✓</span>', 'step');
         }
         appendLog('✓ ' + escapeHtml(c.name) + ' passed', 'success');
+        items.push({ label: c.name, status: 'pass', detail: dataStr });
         passedCases++;
       }
 
       await sleep(300);
       appendLog('Plan finished · ' + passedCases + '/' + cases.length + ' test cases passed', 'success');
+      recordRun({ plan: label || 'Test plan', kind: 'plan', startedAt, items });
       setRunning(false);
       isRunning = false;
     }
@@ -4259,6 +4497,7 @@
     // Where the resolve master–detail renders. Defaults to the modal; the plan builder retargets it.
     let resolveEls = { list: 'resolveList', detail: 'resolveDetail', foot: 'resolveFootStatus', run: 'resolveRunBtn' };
     let onResolveChange = null;   // optional callback(unresolvedCount) for embedded resolvers
+    let resolveLeasing = false;   // true only in the plan builder, where variables can be locked to pools
 
     // Build the resolve item model from a list of unresolved refs (@file.* grouped; bare = value).
     // `seed` (optional) pre-fills chosen values: { records:{'@file':record}, values:{attr:value} }.
@@ -4287,19 +4526,38 @@
         items.push(item);
       });
       unresolved.filter(r => r[0] !== '@').forEach(attr => {
-        const distinct = distinctCandidates(candidatesForAttr(attr));
-        const item = { type: 'value', attr, distinct, chosen: undefined };
+        const distinct = normalDistinctCandidates(attr);   // fixed-value picks come from NORMAL datasets
+        const pools = poolsForAttr(attr);                  // lockable pools offer a "lock" instead
+        const item = { type: 'value', attr, distinct, pools, chosen: undefined };
         if (seed && seed.values && seed.values[attr] !== undefined) item.chosen = seed.values[attr];
-        else if (distinct.length === 1) item.chosen = distinct[0].value;
+        else if (!(resolveLeasing && leasingPoolFor(attr))) {
+          if (resolveLeasing && !distinct.length && pools.length === 1) planPools.add(pools[0].name);  // pool-only → auto-lock
+          else if (distinct.length === 1 && !pools.length) item.chosen = distinct[0].value;
+        }
         items.push(item);
       });
       return items;
+    }
+    // Fixed-value candidates. In the plan builder, lockable pools are offered as a "lock" instead,
+    // so their values are excluded here; elsewhere (single-test resolve) all values are pickable.
+    function normalDistinctCandidates(attr) {
+      const all = candidatesForAttr(attr);
+      if (!resolveLeasing) return distinctCandidates(all);
+      const lockNames = new Set(lockableDatasets().map(d => d.name));
+      return distinctCandidates(all.filter(c => !lockNames.has(c.dataset)));
+    }
+    // Choose a fixed value for a variable — this also unlocks any pool that was leasing it.
+    function pickFixed(it, v) {
+      it.chosen = v;
+      if (resolveLeasing) poolsForAttr(it.attr).forEach(ds => planPools.delete(ds.name));
+      onLeaseChange();
     }
 
     function openResolveModal(unresolved, onRun) {
       resolveOnRun = onRun || (ov => runTest(null, null, ov));
       resolveEls = { list: 'resolveList', detail: 'resolveDetail', foot: 'resolveFootStatus', run: 'resolveRunBtn' };
       onResolveChange = null;
+      resolveLeasing = false;   // single-test resolve: no pool leasing
       resolveItems = buildResolveItems(unresolved);
       // Open focused on the first unresolved variable (conflict/manual), else the first.
       const firstUnresolved = resolveItems.findIndex(it => itemStatus(it) !== 'ok');
@@ -4316,12 +4574,24 @@
       return it.records.length >= 2 ? 'conflict' : 'manual';
     }
     function valueItemStatus(it) {
+      if (resolveLeasing && leasingPoolFor(it.attr)) return 'ok';   // locked to a pool
       if (it.chosen !== undefined) return 'ok';
-      if (it.distinct.length >= 2) return 'conflict';
-      return 'manual';   // 0 candidates
+      const options = it.distinct.length + (resolveLeasing && it.pools ? it.pools.length : 0);
+      return options >= 2 ? 'conflict' : 'manual';
     }
     function itemStatus(it) { return it.type === 'record' ? recordItemStatus(it) : valueItemStatus(it); }
     function unresolvedCount() { return resolveItems.filter(it => itemStatus(it) !== 'ok').length; }
+
+    // Short label for the resolver rail showing how a variable is currently resolved.
+    function itemResolutionLabel(it) {
+      if (it.type === 'record') {
+        return it.chosen != null ? escapeHtml(comboKey(it.records[it.chosen])) : 'pick a record';
+      }
+      const pool = resolveLeasing && leasingPoolFor(it.attr);
+      if (pool) return '<span class="rv-li-lock">🔒 ' + escapeHtml(pool.name) + '</span>';
+      if (it.chosen !== undefined) return escapeHtml(displayVal(it.chosen));
+      return '<span class="rv-li-need">needs a value</span>';
+    }
 
     function markEl(status) {
       const m = document.createElement('span');
@@ -4337,18 +4607,32 @@
       if (!list || !detail) return;
       list.innerHTML = '';
 
+      // Count header: how many variables still need a value/lock.
+      const pend = unresolvedCount();
+      const head = document.createElement('div');
+      head.className = 'rv-list-head' + (pend === 0 ? ' done' : '');
+      head.innerHTML = pend === 0
+        ? svgIcon('check') + ' All ' + resolveItems.length + ' resolved'
+        : '<b>' + pend + '</b> of ' + resolveItems.length + ' to resolve';
+      list.appendChild(head);
+
       // Display order: unresolved first (stable), then resolved (stable).
       const order = resolveItems.map((it, i) => i)
         .sort((a, b) => (itemStatus(resolveItems[a]) === 'ok') - (itemStatus(resolveItems[b]) === 'ok'));
 
       order.forEach(idx => {
         const it = resolveItems[idx];
+        const st = itemStatus(it);
         const li = document.createElement('button');
-        li.className = 'rv-li' + (idx === resolveSelected ? ' sel' : '');
-        li.appendChild(markEl(itemStatus(it)));
-        const name = document.createElement('span'); name.className = 'rv-name';
+        li.className = 'rv-li' + (idx === resolveSelected ? ' sel' : '') + (st === 'ok' ? ' done' : '');
+        li.appendChild(markEl(st));
+        const body = document.createElement('div'); body.className = 'rv-li-body';
+        const name = document.createElement('div'); name.className = 'rv-name';
         name.textContent = it.type === 'record' ? it.root : it.attr;
-        li.appendChild(name);
+        const sub = document.createElement('div'); sub.className = 'rv-li-sub';
+        sub.innerHTML = itemResolutionLabel(it);
+        body.appendChild(name); body.appendChild(sub);
+        li.appendChild(body);
         li.onclick = () => { resolveSelected = idx; renderResolve(); };
         list.appendChild(li);
       });
@@ -4394,11 +4678,43 @@
     }
 
     function renderValueDetail(it) {
-      const byFile = candidatesByFile(it.attr);
-      const desc = byFile.length
-        ? byFile.length + (byFile.length === 1 ? ' file has ' : ' files have ') + 'this variable. Pick a value, or type your own.'
-        : 'No dataset has this variable. Type a value to use.';
+      const lockNames = new Set(lockableDatasets().map(d => d.name));
+      // In the plan builder, lockable pools appear as "lock" options, not value cards.
+      const byFile = candidatesByFile(it.attr).filter(f => !(resolveLeasing && lockNames.has(f.file)));
+      const pools = resolveLeasing ? (it.pools || poolsForAttr(it.attr)) : [];        // leasing only in plan builder
+      const leasedBy = resolveLeasing ? leasingPoolFor(it.attr) : null;
+      const parts = [];
+      if (pools.length) parts.push('🔒 ' + pools.length + ' lockable pool' + (pools.length !== 1 ? 's' : ''));
+      if (byFile.length) parts.push(byFile.length + ' dataset' + (byFile.length !== 1 ? 's' : ''));
+      const desc = (parts.length ? parts.join(' · ') + '. ' : 'No dataset has this variable. ') +
+        'Lock it to a pool, pick a value, or type your own.';
       const el = detailHead(it.attr, desc);
+
+      // ---- Lock options: lease this variable (and its pool's paired columns) from a pool ----
+      if (pools.length) {
+        const lockWrap = document.createElement('div'); lockWrap.className = 'rv-lock-wrap';
+        const lab = document.createElement('div'); lab.className = 'rv-manual-label'; lab.textContent = 'Lock to a pool';
+        lockWrap.appendChild(lab);
+        const opts = document.createElement('div'); opts.className = 'rv-lock-opts';
+        pools.forEach(ds => {
+          const on = leasedBy && leasedBy.name === ds.name;
+          const b = document.createElement('button');
+          b.className = 'rv-lock-opt' + (on ? ' sel' : '');
+          const others = lockableCols(ds).filter(c => c !== it.attr);
+          b.innerHTML = svgIcon('lock') + '<span class="rv-lock-name">' + escapeHtml(ds.name) + '</span>' +
+            '<span class="rv-lock-meta">' + poolSize(ds) + ' rows' +
+            (others.length ? ' · pairs ' + escapeHtml(others.join(', ')) : '') + '</span>';
+          b.onclick = () => { on ? unlockVar(it.attr) : lockVar(it.attr, ds.name); };
+          opts.appendChild(b);
+        });
+        lockWrap.appendChild(opts);
+        el.appendChild(lockWrap);
+      }
+      if (leasedBy) {
+        const note = document.createElement('div'); note.className = 'rv-lock-note';
+        note.innerHTML = '🔒 Leased from <b>' + escapeHtml(leasedBy.name) + '</b> at run time — a free row is picked per run. Pick a value below to use a fixed value instead.';
+        el.appendChild(note);
+      }
 
       if (byFile.length) {
         const search = document.createElement('input');
@@ -4425,7 +4741,7 @@
               if (it.chosen !== undefined && valKey(it.chosen) === valKey(v)) b.classList.add('sel');
               if (v !== null && typeof v === 'object') { b.classList.add('rv-opt-tree'); b.appendChild(valueTree(v)); }
               else b.textContent = displayVal(v);
-              b.onclick = () => { it.chosen = v; renderResolve(); };
+              b.onclick = () => pickFixed(it, v);
               vals.appendChild(b);
             });
             card.appendChild(vals);
@@ -4449,7 +4765,7 @@
       const inFiles = byFile.some(f => f.values.some(v => it.chosen !== undefined && valKey(v) === valKey(it.chosen)));
       if (it.chosen !== undefined && !inFiles) inp.value = displayVal(it.chosen);
       const apply = document.createElement('button'); apply.className = 'btn rv-edit'; apply.textContent = 'Set';
-      const setManual = () => { const v = inp.value.trim(); if (v !== '') { it.chosen = v; renderResolve(); } };
+      const setManual = () => { const v = inp.value.trim(); if (v !== '') pickFixed(it, v); };
       apply.onclick = setManual;
       inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); setManual(); } };
       man.appendChild(inp); man.appendChild(apply);
@@ -5210,7 +5526,7 @@
     });
 
     /* ---------- Views ---------- */
-    const VIEW_IDS = { editor: 'editorView', projects: 'projectsView', testdata: 'testDataView', plans: 'plansView', locks: 'locksView' };
+    const VIEW_IDS = { editor: 'editorView', projects: 'projectsView', testdata: 'testDataView', plans: 'plansView', locks: 'locksView', history: 'historyView' };
     function switchView(name) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById(VIEW_IDS[name] || 'editorView').classList.add('active');
@@ -5219,10 +5535,12 @@
       document.getElementById('navTestData').classList.toggle('active', name === 'testdata');
       document.getElementById('navPlans').classList.toggle('active', name === 'plans');
       document.getElementById('navLocks').classList.toggle('active', name === 'locks');
+      document.getElementById('navHistory').classList.toggle('active', name === 'history');
       if (name === 'projects') renderProjects();
       if (name === 'testdata') { rebuildVariables(); renderVariables(); renderDataFiles(); renderDatasets(); }
       if (name === 'plans') { showPlanPane('list'); renderSavedPlans(); }
       if (name === 'locks') renderLocks();
+      if (name === 'history') renderRunHistory();
       if (name === 'editor') input.focus();
     }
 
