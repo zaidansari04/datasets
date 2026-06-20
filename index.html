@@ -276,6 +276,58 @@
     }
     #datasetModal .modal-foot { padding: 14px 18px; }
     #datasetModal .modal-foot .td-hint { font-size: 12.5px; }
+    .ds-lockable-toggle {
+      display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      padding: 7px 11px; border: 1px solid var(--border-strong); border-radius: 9px; background: #fff;
+    }
+    .ds-lockable-toggle input { width: 16px; height: 16px; accent-color: var(--purple); cursor: pointer; }
+    .ds-lockable-toggle .ico { width: 15px; height: 15px; color: var(--text-faint); }
+    .ds-lockable-toggle:has(input:checked) { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+    .ds-lockable-toggle:has(input:checked) .ico { color: var(--purple); }
+    .ds-lock-badge {
+      flex: none; display: inline-flex; align-items: center; gap: 3px;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      padding: 2px 7px; border-radius: 999px; background: var(--purple-soft); color: var(--purple);
+    }
+    .ds-lock-badge .ico { width: 12px; height: 12px; }
+
+    /* Locks panel */
+    .locks-card {
+      border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+      margin-bottom: 18px; background: #fff;
+    }
+    .locks-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px; background: #fafafa; border-bottom: 1px solid var(--border);
+    }
+    .locks-title { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; }
+    .locks-title .ico { width: 17px; height: 17px; color: var(--purple); }
+    .locks-stat { display: inline-flex; gap: 6px; }
+    .locks-pill {
+      font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+      background: var(--bg-soft); color: var(--text-muted); border: 1px solid var(--border);
+    }
+    .locks-pill.free   { background: #ecfdf5; color: #047857; border-color: #c7f0dd; }
+    .locks-pill.leased { background: var(--purple-soft); color: var(--purple); border-color: #e4dcff; }
+    .locks-head .btn { height: 34px; font-size: 13px; }
+    .locks-rows { display: flex; flex-direction: column; }
+    .lock-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 14px;
+    }
+    .lock-row:last-child { border-bottom: none; }
+    .lock-row.leased { background: #fffdf7; }
+    .lock-idx { font-family: var(--mono); font-weight: 700; color: var(--text-muted); width: 42px; flex: none; }
+    .lock-vals { font-family: var(--mono); font-size: 13px; color: var(--text); flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lock-holder { font-size: 12.5px; color: var(--text-faint); white-space: nowrap; }
+    .lock-holder.free-tag { color: #047857; font-weight: 600; }
+    .lock-rel { height: 30px; font-size: 12.5px; padding: 0 12px; flex: none; }
+    .lock-state { flex: none; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+      padding: 2px 7px; border-radius: 999px; }
+    .lock-state.running { background: #ecfdf5; color: #047857; }
+    .lock-state.idle { background: #fff7ed; color: #b45309; }
     .ds-editor {
       flex: 1; display: flex; min-height: 360px; overflow: hidden;
       background: #fff;
@@ -431,6 +483,23 @@
     .plan-var-pill.set { background: #ecfdf5; color: #047857; }
     .plan-dot { width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block; }
 
+    /* Lockable pool picker (Data set tab) */
+    .plan-pool-bar {
+      border: 1px solid #e4dcff; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+      background: var(--purple-soft);
+    }
+    .plan-pool-head { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600; color: var(--purple); }
+    .plan-pool-ico .ico { width: 16px; height: 16px; }
+    .plan-pool-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+    .plan-pool-select {
+      height: 38px; min-width: 220px; padding: 0 12px;
+      border: 1px solid var(--border-strong); border-radius: 9px; background: #fff;
+      font-family: var(--mono); font-size: 13.5px; color: var(--text); cursor: pointer;
+    }
+    .plan-pool-select:focus { outline: none; border-color: var(--purple); }
+    .plan-pool-meta { font-family: var(--mono); font-size: 12.5px; color: var(--text-muted); }
+    .plan-pool-hint { font-size: 12.5px; color: var(--text-muted); margin-top: 8px; }
+
     /* Test plan loop config (Data set tab) */
     .plan-loop-bar {
       border: 1px solid var(--border); border-radius: 12px;
@@ -465,7 +534,16 @@
       flex: none; font-family: var(--mono); font-size: 11px; font-weight: 700;
       padding: 2px 8px; border-radius: 999px; background: #f3effe; color: var(--purple);
     }
-    #planLoopTables { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+    .plan-axis-group {
+      flex: none; height: 28px; padding: 0 6px; border: 1px solid var(--border-strong);
+      border-radius: 7px; background: #fff; font-family: var(--sans); font-size: 12px;
+      color: var(--text-muted); cursor: pointer;
+    }
+    .plan-axis-group:focus { outline: none; border-color: var(--purple); }
+    #planLoopTables { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin-bottom: 14px; }
+    .plan-loop-presets { display: inline-flex; gap: 8px; }
+    .plan-loop-presets .btn { height: 30px; font-size: 13px; padding: 0 12px; }
+    .plan-loop-count.err { color: var(--orange); }
 
     /* Builder: selection summary + sticky footer */
     .plan-sel-bar {
@@ -496,6 +574,8 @@
     .plan-chip.runs { background: var(--purple-soft); color: var(--purple); border-color: #e4dcff; }
     .plan-chip.loop { background: #ecfdf5; color: #047857; border-color: #c7f0dd; }
     .plan-chip.ds   { background: #ecfeff; color: #0e7490; border-color: #cdeef3; font-family: var(--mono); }
+    .plan-chip.pool { background: var(--purple-soft); color: var(--purple); border-color: #e4dcff; font-family: var(--mono); }
+    .plan-chip.pool .ico { width: 11px; height: 11px; }
 
     /* Clickable dataset table in the resolve window */
     .resolve-ds-block { margin-bottom: 14px; }
@@ -1553,6 +1633,12 @@
     .log-data b { color: var(--text); font-weight: 600; }
     .log-old { color: var(--text-faint); text-decoration: line-through; }
     .log-arrow { color: var(--text-faint); }
+    /* Run/case tag prefix for interleaved concurrent (lease-mode) logs */
+    .log-tag {
+      display: inline-block; font-family: var(--mono); font-size: 11px; font-weight: 600;
+      color: var(--purple); background: var(--purple-soft);
+      padding: 0 6px; border-radius: 5px; margin-right: 8px;
+    }
     .log-new { color: var(--purple); font-weight: 600; }
 
     /* Running state */
@@ -1670,6 +1756,10 @@
       <div class="nav-item" id="navPlans" onclick="switchView('plans')">
         <span class="icon" data-ico="clipboard-check"></span>
         <span>Test Plans</span>
+      </div>
+      <div class="nav-item" id="navLocks" onclick="switchView('locks')">
+        <span class="icon" data-ico="lock"></span>
+        <span>Locks</span>
       </div>
     </nav>
   </aside>
@@ -1876,21 +1966,30 @@
           <div class="plan-cases" id="planCases"></div>
         </div>
         <div id="planTabData" style="display:none; height:100%;">
+          <div class="plan-pool-bar" id="planPoolBar" style="display:none;">
+            <div class="plan-pool-head">
+              <span class="plan-pool-ico" data-ico="lock"></span>
+              <span>Lockable pool</span>
+            </div>
+            <div class="plan-pool-row">
+              <select id="planPoolSelect" class="plan-pool-select" onchange="onPlanPoolChange()"></select>
+              <span class="plan-pool-meta" id="planPoolMeta"></span>
+            </div>
+            <div class="plan-pool-hint" id="planPoolHint"></div>
+          </div>
           <div class="plan-loop-bar">
             <label class="plan-loop-toggle">
               <input type="checkbox" id="planLoop" onchange="renderPlanLoop()" />
               <span>Loop this plan over list variables</span>
             </label>
             <div id="planLoopConfig" style="display:none;">
-              <div class="plan-loop-hint">Each selected list variable becomes a loop axis. Scalars stay fixed across runs.</div>
+              <div class="plan-loop-hint">Pick which lists to loop. Put two or more on the same <b>Pair</b> group to advance them together by index (same length required); different groups are crossed (all combinations). Scalars stay fixed.</div>
               <div id="planLoopTables"></div>
               <div class="plan-loop-row">
-                <label class="plan-loop-mode" id="planLoopModeWrap">Combine mode
-                  <select id="planLoopMode" onchange="updateLoopCount()">
-                    <option value="matrix">Matrix — all combinations</option>
-                    <option value="paired" id="planLoopModePaired">Paired — by index</option>
-                  </select>
-                </label>
+                <span class="plan-loop-presets">
+                  <button type="button" class="btn" onclick="setLoopPairing('cross')">Cross all</button>
+                  <button type="button" class="btn" onclick="setLoopPairing('pair')">Pair all</button>
+                </span>
                 <span id="planLoopCount" class="plan-loop-count"></span>
               </div>
             </div>
@@ -1909,6 +2008,21 @@
       </div>
     </div>
    </div><!-- /plansView -->
+
+   <!-- ===== Locks view ===== -->
+   <div class="view" id="locksView">
+     <div class="projects-header">
+       <div>
+         <h1 class="projects-title">Locks</h1>
+         <p class="projects-sub">Live leases on lockable pools. Each running test holds one row until it finishes.</p>
+       </div>
+       <div style="display:flex; gap:10px;">
+         <button class="btn" onclick="clearStaleLeases()" title="Reclaim leases from deleted pools, shrunk pools, or closed/expired runs"><span data-ico="clock"></span> Clear stale</button>
+         <button class="btn" onclick="releaseAllLeases()"><span data-ico="lock-open"></span> Release all</button>
+       </div>
+     </div>
+     <div class="plans-body"><div id="locksBody"></div></div>
+   </div><!-- /locksView -->
 
    <!-- Test plan attempts modal -->
    <div class="modal-overlay" id="loopPreviewModal" onclick="if(event.target===this)closeLoopPreview()">
@@ -1979,6 +2093,11 @@
        </div>
        <div class="modal-foot">
          <button class="btn danger" id="dsDeleteBtn" onclick="dsDeleteCurrent()" style="display:none"><span data-ico="trash"></span> Delete</button>
+         <label class="ds-lockable-toggle" title="Each run leases one row (index) from this pool; the row is locked until the run finishes.">
+           <input type="checkbox" id="dsLockable" />
+           <span data-ico="lock"></span>
+           <span>Lockable pool</span>
+         </label>
          <span class="td-hint">Types: string, number, boolean, list, object (nest up to 2 levels — e.g. <code>rider.address.line1</code>).</span>
          <span style="flex:1"></span>
          <button class="btn primary" onclick="saveDataset()"><span data-ico="save"></span> Save</button>
@@ -2053,6 +2172,9 @@
       'chevron-right': '<path d="m9 18 6-6-6-6"/>',
       'chevron-up': '<path d="m18 15-6-6-6 6"/>',
       'alert-triangle': '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+      'lock': '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      'lock-open': '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+      'clock': '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     };
     function svgIcon(name, cls) {
       const p = ICON_PATHS[name]; if (!p) return '';
@@ -2480,6 +2602,124 @@
     }
     function saveDatasets(d) { localStorage.setItem(DATASET_KEY, JSON.stringify(d)); }
 
+    // ----- Lockable pools: a dataset of equal-length lists = N leasable rows -----
+    function lockableDatasets() { return loadDatasets().filter(d => d.lockable); }
+    // Number of rows (= list length) in a lockable dataset's pool.
+    function poolSize(ds) {
+      if (!ds) return 0;
+      const data = parseYaml(ds.yaml || '');
+      const lists = Object.keys(data || {}).filter(k => Array.isArray(data[k]));
+      return lists.length ? data[lists[0]].length : 0;
+    }
+    // The pool's rows: row i = { col: list[i], … } across every list column.
+    function lockableRows(ds) {
+      const data = parseYaml(ds.yaml || '');
+      const cols = Object.keys(data || {}).filter(k => Array.isArray(data[k]));
+      const n = cols.length ? data[cols[0]].length : 0;
+      const rows = [];
+      for (let i = 0; i < n; i++) { const r = {}; cols.forEach(c => r[c] = data[c][i]); rows.push(r); }
+      return rows;
+    }
+    // The columns (variable names) a lockable dataset provides.
+    function lockableCols(ds) {
+      const data = parseYaml(ds.yaml || '');
+      return Object.keys(data || {}).filter(k => Array.isArray(data[k]));
+    }
+
+    /* ----- Global lease registry (shared pool, persisted across tabs/reloads) ----- */
+    // Shape: { [datasetName]: { [rowIndex]: { leaseId, holder, since } } }
+    const LOCKS_KEY = 'drizz.locks';
+    const LEASE_TTL_MS = 10 * 60 * 1000;       // leases older than this are stale (e.g. a closed tab)
+    let leaseSeq = 0;
+    const activeLeaseIds = new Set();          // leaseIds for runs in progress in THIS session
+    function loadLocks() { try { return JSON.parse(localStorage.getItem(LOCKS_KEY)) || {}; } catch (e) { return {}; } }
+    function saveLocks(l) { localStorage.setItem(LOCKS_KEY, JSON.stringify(l)); }
+    function leasesFor(dsName) { return loadLocks()[dsName] || {}; }
+    function leasedCount(dsName) { return Object.keys(leasesFor(dsName)).length; }
+    function locksChanged() { if (typeof renderLocks === 'function') renderLocks(); }
+    function leaseIsStale(lease) {
+      return !!lease && !activeLeaseIds.has(lease.leaseId) && (Date.now() - (lease.since || 0)) > LEASE_TTL_MS;
+    }
+
+    // Reclaim leases that can no longer be valid: dataset deleted / no longer lockable, row index
+    // out of range (pool shrank), or expired past the TTL (a run that never released). Returns
+    // the number reclaimed. Never touches leases for runs active in this session.
+    function gcLeases() {
+      const locks = loadLocks();
+      const size = {};
+      loadDatasets().forEach(d => { if (d.lockable) size[d.name] = poolSize(d); });
+      let removed = 0;
+      Object.keys(locks).forEach(name => {
+        const held = locks[name];
+        Object.keys(held).forEach(i => {
+          const gone = !(name in size);                       // dataset deleted or un-locked
+          const outOfRange = (name in size) && +i >= size[name]; // pool shrank below this index
+          if (gone || outOfRange || leaseIsStale(held[i])) { delete held[i]; removed++; }
+        });
+        if (!Object.keys(held).length) delete locks[name];
+      });
+      if (removed) saveLocks(locks);
+      return removed;
+    }
+
+    // Atomically (single-threaded read-modify-write) take the lowest free row, or null if full.
+    function tryAcquire(dsName, ds, holder) {
+      gcLeases();                                            // free stale/orphan rows first
+      const size = poolSize(ds);
+      const locks = loadLocks();
+      const held = locks[dsName] || (locks[dsName] = {});
+      let idx = -1;
+      for (let i = 0; i < size; i++) if (!held[i]) { idx = i; break; }
+      if (idx < 0) return null;
+      const leaseId = 'lease_' + Date.now() + '_' + (++leaseSeq) + '_' + Math.floor(Math.random() * 1e6);
+      held[idx] = { leaseId, holder, since: Date.now() };
+      saveLocks(locks);
+      // Cross-tab race guard: re-read and confirm our leaseId actually owns the row.
+      const after = (loadLocks()[dsName] || {})[idx];
+      if (!after || after.leaseId !== leaseId) return null;  // another tab won — caller retries
+      locksChanged();
+      return { index: idx, row: lockableRows(ds)[idx], leaseId, dsName };
+    }
+    // Wait (polling) for a free row, up to timeoutMs; throws on timeout. onWait fires once if it has to wait.
+    async function acquireLease(dsName, ds, holder, opts) {
+      opts = opts || {};
+      const timeoutMs = opts.timeoutMs || 90000;
+      const start = Date.now();
+      let waited = false;
+      for (;;) {
+        const lease = tryAcquire(dsName, ds, holder);
+        if (lease) { activeLeaseIds.add(lease.leaseId); return lease; }
+        if (!waited) { waited = true; if (opts.onWait) opts.onWait(); }
+        if (Date.now() - start > timeoutMs)
+          throw new Error('No free value in pool “' + dsName + '” after ' + Math.round(timeoutMs / 1000) + 's');
+        await sleep(400);
+      }
+    }
+    function releaseLease(dsName, leaseId) {
+      activeLeaseIds.delete(leaseId);
+      const locks = loadLocks();
+      const held = locks[dsName]; if (!held) return;
+      Object.keys(held).forEach(i => { if (held[i].leaseId === leaseId) delete held[i]; });
+      if (!Object.keys(held).length) delete locks[dsName];
+      saveLocks(locks); locksChanged();
+    }
+    function releaseRow(dsName, index) {
+      const locks = loadLocks();
+      const held = locks[dsName]; if (!held) return;
+      if (held[index]) activeLeaseIds.delete(held[index].leaseId);
+      delete held[index];
+      if (!Object.keys(held).length) delete locks[dsName];
+      saveLocks(locks); locksChanged();
+    }
+    function releaseAllLeases(dsName) {
+      const locks = loadLocks();
+      const forget = held => Object.keys(held || {}).forEach(i => activeLeaseIds.delete(held[i].leaseId));
+      if (dsName) { forget(locks[dsName]); delete locks[dsName]; }
+      else Object.keys(locks).forEach(k => { forget(locks[k]); delete locks[k]; });
+      saveLocks(locks); locksChanged();
+    }
+    function clearStaleLeases() { const n = gcLeases(); locksChanged(); return n; }
+
     let dsEditing = null;   // { id, yaml } being edited (YAML is the source of truth)
 
     const YAML_TEMPLATE =
@@ -2527,12 +2767,13 @@
     function editDataset(id) {
       const ds = loadDatasets().find(d => d.id === id);
       if (!ds) return;
-      dsEditing = { id: ds.id, yaml: ds.yaml != null ? ds.yaml : modelToYaml(ds) };
+      dsEditing = { id: ds.id, yaml: ds.yaml != null ? ds.yaml : modelToYaml(ds), lockable: !!ds.lockable };
       openDatasetEditor(ds.name);
     }
     function openDatasetEditor(name) {
       const nameInput = document.getElementById('datasetName');
       nameInput.value = name || '';
+      document.getElementById('dsLockable').checked = !!(dsEditing && dsEditing.lockable);
       document.getElementById('dsPaneYaml').value = dsEditing.yaml;
       document.getElementById('dsFind').classList.remove('open');   // reset find bar
       document.getElementById('dsFindInput').value = '';
@@ -2826,9 +3067,29 @@
           }
         }
       }
+      const lockable = document.getElementById('dsLockable').checked;
+      if (lockable) {
+        // A lockable pool must be top-level lists of equal length — each index is one leasable row.
+        const data = parseYaml(yaml);
+        const keys = (data && typeof data === 'object' && !Array.isArray(data)) ? Object.keys(data) : [];
+        const lists = keys.filter(k => Array.isArray(data[k]));
+        if (!keys.length || lists.length !== keys.length) {
+          appAlert('Lockable pool needs lists', 'Every variable in a lockable dataset must be a list (e.g. ' +
+            '<code>username:</code> then <code>- a1</code> …). Non-list variables: ' +
+            (keys.filter(k => !Array.isArray(data[k])).join(', ') || 'none') + '.');
+          return;
+        }
+        const lens = lists.map(k => data[k].length);
+        if (new Set(lens).size > 1) {
+          appAlert('Unequal list lengths', 'Every list in a lockable pool must have the same number of items ' +
+            '(one per row). Lengths: ' + lists.map((k, i) => k + ' (' + lens[i] + ')').join(', ') + '.');
+          return;
+        }
+        if (lens[0] === 0) { appAlert('Empty pool', 'A lockable dataset needs at least one row.'); return; }
+      }
       const idx = all.findIndex(d => d.id === dsEditing.id);
       const prev = idx >= 0 ? all[idx] : null;
-      const rec = { id: dsEditing.id, name, columns: model.columns, rows: model.rows, yaml,
+      const rec = { id: dsEditing.id, name, columns: model.columns, rows: model.rows, yaml, lockable,
                     createdBy: (prev && prev.createdBy) || USER_EMAIL,
                     createdAt: (prev && prev.createdAt) || Date.now(), updatedAt: Date.now() };
       if (idx >= 0) all[idx] = rec; else all.push(rec);
@@ -2931,6 +3192,73 @@
       items.slice(start, start + DS_PAGE_SIZE).forEach(ds => list.appendChild(datasetCard(ds)));
       renderDatasetPager(pages, items.length);
     }
+    // ----- Locks panel: live view of every lockable pool's leases -----
+    function renderLocks() {
+      const body = document.getElementById('locksBody');
+      if (!body) return;
+      const dss = lockableDatasets();
+      if (!dss.length) {
+        body.innerHTML = '<div class="projects-empty"><div class="big">' + svgIcon('lock') +
+          '</div><div class="sub">No lockable datasets. Mark a dataset “Lockable pool” in the editor to use leases.</div></div>';
+        return;
+      }
+      gcLeases();                       // reclaim orphan/stale rows before drawing
+      const locks = loadLocks();
+      body.innerHTML = '';
+      dss.forEach(ds => {
+        const size = poolSize(ds), rows = lockableRows(ds), cols = lockableCols(ds);
+        const held = locks[ds.name] || {};
+        const usedN = Object.keys(held).length;
+        const card = document.createElement('div');
+        card.className = 'locks-card';
+        let html = '<div class="locks-head">' +
+          '<div class="locks-title">' + svgIcon('lock') + ' <b>' + escapeHtml(ds.name) + '</b></div>' +
+          '<div class="locks-stat"><span class="locks-pill free">' + (size - usedN) + ' free</span>' +
+          '<span class="locks-pill leased">' + usedN + ' leased</span>' +
+          '<span class="locks-pill">' + size + ' total</span></div>' +
+          '<span style="flex:1"></span>' +
+          '<button class="btn" data-rel-all>' + svgIcon('lock-open') + ' Release all</button>' +
+          '</div><div class="locks-rows">';
+        for (let i = 0; i < size; i++) {
+          const lease = held[i];
+          const vals = cols.map(k => escapeHtml(k) + '=' + escapeHtml(displayVal(rows[i][k]))).join(', ');
+          const running = lease && activeLeaseIds.has(lease.leaseId);
+          const tag = lease ? (running ? '<span class="lock-state running">running</span>'
+                                       : '<span class="lock-state idle">held</span>') : '';
+          html += '<div class="lock-row ' + (lease ? 'leased' : 'free') + '">' +
+            '<span class="lock-idx">#' + i + '</span>' +
+            '<span class="lock-vals">' + vals + '</span>' +
+            (lease
+              ? tag + '<span class="lock-holder">' + escapeHtml(lease.holder || '') + ' · ' + relTime(lease.since) + '</span>' +
+                '<button class="btn lock-rel" data-rel="' + i + '" data-running="' + (running ? 1 : 0) + '">Release</button>'
+              : '<span class="lock-holder free-tag">free</span>') +
+            '</div>';
+        }
+        html += '</div>';
+        card.innerHTML = html;
+        card.querySelector('[data-rel-all]').onclick = () => releaseAllLeases(ds.name);
+        card.querySelectorAll('[data-rel]').forEach(b => b.onclick = () => {
+          const i = +b.dataset.rel;
+          if (b.dataset.running === '1') {
+            appConfirm({
+              title: 'Release a running lease?',
+              variant: 'warning',
+              message: 'Row #' + i + ' is held by a test that is still running. Releasing it lets another run reuse the same value — they may collide. Release anyway?',
+              confirmLabel: 'Release'
+            }, () => releaseRow(ds.name, i));
+          } else {
+            releaseRow(ds.name, i);
+          }
+        });
+        body.appendChild(card);
+      });
+    }
+    // Keep the panel fresh (lease ages, stale reclamation, waiting cases) while it's open.
+    setInterval(() => {
+      const v = document.getElementById('locksView');
+      if (v && v.classList.contains('active')) renderLocks();
+    }, 1500);
+
     function datasetCard(ds) {
       const vars = ds.columns.filter(c => c !== 'key');
       const empty = datasetEmptyVars(ds);
@@ -2941,6 +3269,8 @@
         '<div class="ds-card-head">' +
           '<div class="ds-card-icon">' + svgIcon('database') + '</div>' +
           '<div class="ds-card-name"></div>' +
+          (ds.lockable ? '<span class="ds-lock-badge" title="Lockable pool — leased one row per run">' +
+            svgIcon('lock') + poolSize(ds) + '</span>' : '') +
         '</div>' +
         '<div class="ds-card-meta">' +
           '<span class="ds-count"></span>' +
@@ -3025,18 +3355,63 @@
         });
       });
       // A variable needs resolving if at least one selected case references it WITHOUT setting it.
+      // Variables provided by a lockable pool are leased at run time, so they don't need resolving.
       cases.forEach(c => {
         const setMap = parseSetMap(c.content);
         refsInContent(c.content).forEach(r => {
-          if (!setMap.has(r) && need.indexOf(r) < 0) need.push(r);
+          if (!setMap.has(r) && !isLockableVar(r) && need.indexOf(r) < 0) need.push(r);
         });
       });
       return { all: Array.from(all), need, setSomewhere };
+    }
+    // True when a plain variable name is a column of some lockable dataset (leased, not resolved).
+    function isLockableVar(name) {
+      if (name.indexOf('.') >= 0) return false;
+      return lockableDatasets().some(ds => lockableCols(ds).includes(name));
     }
 
     /* ===== Test Plan builder (new flow) ===== */
     let planBuilder = null;   // { id, name } currently being edited
     let planSeed = null;      // { records:{'@file':rec}, values:{attr:val} } pre-fill for the resolver
+    let planPoolChoice = null; // chosen lockable dataset name when multiple pools could serve the cases
+
+    // Lockable pools whose columns are referenced by these cases (candidates to lease from).
+    function candidateLockablePools(cases) {
+      const refs = new Set();
+      cases.forEach(c => refsInContent(c.content).forEach(r => { if (r.indexOf('.') < 0) refs.add(r); }));
+      return lockableDatasets().filter(ds => lockableCols(ds).some(col => refs.has(col)));
+    }
+    // The pool to lease from: the user's pick if still valid, else the first candidate, else null.
+    function resolvePlanPool(cases, preferredName) {
+      const cands = candidateLockablePools(cases);
+      if (!cands.length) return null;
+      return (preferredName && cands.find(d => d.name === preferredName)) || cands[0];
+    }
+    function onPlanPoolChange() {
+      planPoolChoice = document.getElementById('planPoolSelect').value || null;
+      renderPlanPool();
+    }
+    // Show/populate the lockable-pool picker for the selected cases.
+    function renderPlanPool() {
+      const bar = document.getElementById('planPoolBar');
+      if (!bar) return;
+      const cases = selectedCases();
+      const cands = candidateLockablePools(cases);
+      if (!cands.length) { bar.style.display = 'none'; return; }
+      bar.style.display = '';
+      const chosen = resolvePlanPool(cases, planPoolChoice);
+      planPoolChoice = chosen ? chosen.name : null;        // normalize to a valid pool
+      const sel = document.getElementById('planPoolSelect');
+      sel.innerHTML = cands.map(ds =>
+        '<option value="' + escapeHtml(ds.name) + '">' + escapeHtml(ds.name) + '  (' + poolSize(ds) + ' rows)</option>').join('');
+      sel.value = planPoolChoice;
+      const cols = chosen ? lockableCols(chosen) : [];
+      document.getElementById('planPoolMeta').textContent =
+        '🔒 ' + poolSize(chosen) + ' rows · ' + cols.join(', ');
+      document.getElementById('planPoolHint').innerHTML = cands.length > 1
+        ? '<b>' + cands.length + ' pools</b> provide these variables — pick which one each run leases a row from.'
+        : 'These variables are leased one row per run from this pool.';
+    }
 
     function showPlanPane(which) {
       document.getElementById('planListPane').style.display = which === 'list' ? 'flex' : 'none';
@@ -3044,10 +3419,10 @@
     }
     // Reset the loop config (axis selections + toggle) so it never leaks between plans.
     function resetPlanLoopState() {
-      planLoopRoots.clear(); loopTouched.clear();
+      planLoopRoots.clear(); loopTouched.clear(); loopGroups.clear();
+      planPoolChoice = null;
       const cb = document.getElementById('planLoop'); if (cb) cb.checked = false;
       const cfg = document.getElementById('planLoopConfig'); if (cfg) cfg.style.display = 'none';
-      const mode = document.getElementById('planLoopMode'); if (mode) mode.value = 'matrix';
     }
     function newPlan() {
       planBuilder = { id: 'plan_' + Date.now(), name: '' };
@@ -3071,6 +3446,7 @@
         (p.caseIds || []).forEach(cid => planSelected.add(cid));
         planSeed = planSeedFromValues(p.values || {});
       }
+      planPoolChoice = p.pool || null;   // restore the chosen lockable pool, if any
       document.getElementById('planNameInput').value = p.name;
       showPlanPane('builder'); planTab('cases'); renderPlanCases();
     }
@@ -3087,7 +3463,7 @@
       document.querySelectorAll('.plan-build-tab').forEach(b => b.classList.toggle('active', b.dataset.ptab === tab));
       document.getElementById('planTabCases').style.display = tab === 'cases' ? '' : 'none';
       document.getElementById('planTabData').style.display = tab === 'data' ? 'flex' : 'none';
-      if (tab === 'data') { openPlanResolve(); renderPlanLoop(); }
+      if (tab === 'data') { renderPlanPool(); openPlanResolve(); renderPlanLoop(); }
       updatePlanFooter();
     }
 
@@ -3176,9 +3552,10 @@
       renderResolve();
     }
 
-    /* ----- Test Plan: loop over datasets (cartesian product) ----- */
+    /* ----- Test Plan: loop over list variables (pair groups × cartesian) ----- */
     const planLoopRoots = new Set();
     const loopTouched = new Set();
+    const loopGroups = new Map();   // axis name -> pair group id ('solo' | 'A' | 'B' | …)
     let loopCtx = null;
 
     // Dataset names referenced as {{name.path}} across the selected cases.
@@ -3194,21 +3571,66 @@
     function cartesian(lists) {
       return lists.reduce((acc, list) => acc.flatMap(a => list.map(x => a.concat([x]))), [[]]);
     }
-    // Paired/zip combine: align lists by index. Run count = longest list; shorter lists
-    // (e.g. a scalar/broadcast axis of length 1) repeat their last element on every run.
-    function zip(lists) {
-      if (!lists.length) return [[]];
-      const n = Math.max(...lists.map(l => l.length));
-      const out = [];
-      for (let i = 0; i < n; i++) out.push(lists.map(l => l[i < l.length ? i : l.length - 1]));
-      return out;
-    }
-    // Which combine mode the loop config is set to ('matrix' = cartesian, 'paired' = zip).
-    function loopCombineMode() {
-      const el = document.getElementById('planLoopMode');
-      return el ? el.value : 'matrix';
-    }
     function comboKey(rec) { return rec.key !== undefined ? String(rec.key) : displayVal(rec); }
+
+    // The pair group an axis belongs to. 'solo' (default) means it's its own group → crossed
+    // with everything; a letter means it's zipped (advanced by index) with same-letter axes.
+    function axisGroup(name) { return loopGroups.get(name) || 'solo'; }
+    // Group the SELECTED axes: same letter → one group (zipped); each 'solo' → its own group.
+    // Returns an array of groups, each an array of axes; order follows first appearance.
+    function planLoopGroupList() {
+      const axes = planAxes().filter(a => planLoopRoots.has(a.name));
+      const byKey = new Map(), order = [];
+      axes.forEach(a => {
+        const g = axisGroup(a.name);
+        const key = g === 'solo' ? 'solo:' + a.name : 'pair:' + g;
+        if (!byKey.has(key)) { byKey.set(key, []); order.push(key); }
+        byKey.get(key).push(a);
+      });
+      return order.map(k => byKey.get(k));
+    }
+    // A pair group is invalid if it has 2+ axes of differing lengths (can't zip).
+    function badPairGroup(groups) {
+      return (groups || planLoopGroupList()).find(g => g.length > 1 && !g.every(a => a.count === g[0].count));
+    }
+    // One concrete selection for an axis at index i (value list or dataset record).
+    function loopSelectionAt(a, i) {
+      if (a.kind === 'record') {
+        const rec = datasetRichRecords(loadDatasets().find(d => d.name === a.name))[i];
+        return { kind: 'record', name: a.name, record: rec, label: comboKey(rec) };
+      }
+      const v = a.values[i];
+      return { kind: 'value', name: a.name, value: v, label: displayVal(v) };
+    }
+    // Build combos: within a group zip by index; across groups take the cartesian product.
+    function buildLoopCombos(groups) {
+      const groupTuples = groups.map(g => {
+        const n = g[0].count, tuples = [];
+        for (let i = 0; i < n; i++) tuples.push(g.map(a => loopSelectionAt(a, i)));
+        return tuples;
+      });
+      return cartesian(groupTuples).map(combo => combo.flat());
+    }
+    // Letters offered in each axis's pair-group dropdown (enough for every list axis).
+    function pairGroupLetters() {
+      const n = Math.max(2, planAxes().filter(a => a.kind !== 'record').length);
+      return 'ABCDEFGH'.slice(0, n).split('');
+    }
+    // Short descriptor of the current grouping for the saved-plan badge.
+    function loopModeLabel() {
+      const groups = planLoopGroupList();
+      const paired = groups.some(g => g.length > 1);
+      const crossed = groups.length > 1;
+      if (paired && crossed) return 'mixed';
+      if (paired) return 'paired';
+      return 'matrix';
+    }
+    // Quick presets: cross everything (full matrix) or pair everything into one group.
+    function setLoopPairing(mode) {
+      planAxes().filter(a => planLoopRoots.has(a.name) && a.kind !== 'record')
+        .forEach(a => loopGroups.set(a.name, mode === 'pair' ? 'A' : 'solo'));
+      renderPlanLoop();
+    }
 
     // True when a plain ref resolves to a LIST in any dataset (a list-valued column) — only
     // these are loopable. Scalars stay fixed across runs.
@@ -3231,6 +3653,7 @@
           if (r.indexOf('.') >= 0) return;            // plain values only
           if (named.has(r) || vseen.has(r)) return;
           if (setMap.has(r)) return;                  // SET in case
+          if (isLockableVar(r)) return;               // leased from a lockable pool, not looped
           // Only LIST-valued variables are loopable. A scalar (item_a:"pizza") is not an axis —
           // it stays fixed across runs and is resolved through the normal resolve step.
           if (!refIsListAttr(r)) return;
@@ -3256,10 +3679,9 @@
       if (!axes.length) {
         tables.innerHTML = '<div class="var-empty">No list variables in the selected case. Loop needs a list-valued variable (e.g. <code>city: ["A","B"]</code>).</div>';
         document.getElementById('planLoopCount').textContent = '';
-        const modeWrap = document.getElementById('planLoopModeWrap');
-        if (modeWrap) modeWrap.style.display = 'none';
         return;
       }
+      const letters = pairGroupLetters();
       axes.forEach(a => {
         if (!loopTouched.has(a.name)) { planLoopRoots.add(a.name); loopTouched.add(a.name); }  // default-on
         const row = document.createElement('label');
@@ -3277,6 +3699,19 @@
         row.querySelector('.plan-axis-name').textContent = a.name;
         row.querySelector('.plan-axis-meta').textContent = a.kind === 'record' ? 'dataset rows' : 'list variable';
         row.querySelector('.plan-axis-count').textContent = a.count + (a.kind === 'record' ? ' rows' : ' items');
+        // Pair-group dropdown (list axes only). Same letter ⇒ zipped together.
+        if (a.kind !== 'record') {
+          const grp = document.createElement('select');
+          grp.className = 'plan-axis-group';
+          grp.title = 'Pair group — same group advances together by index';
+          const cur = axisGroup(a.name);
+          grp.innerHTML = '<option value="solo">Cross</option>' +
+            letters.map(L => '<option value="' + L + '">Pair ' + L + '</option>').join('');
+          grp.value = cur;
+          grp.onclick = e => e.preventDefault();   // don't toggle the row's checkbox label
+          grp.onchange = () => { loopGroups.set(a.name, grp.value); updateLoopCount(); };
+          row.insertBefore(grp, row.querySelector('.plan-axis-count'));
+        }
         tables.appendChild(row);
       });
       updateLoopCount();
@@ -3284,37 +3719,44 @@
     }
     function updateLoopCount() {
       const axes = planAxes().filter(a => planLoopRoots.has(a.name));
-      const counts = axes.map(a => a.count);
-      // Combine mode only matters with 2+ axes (with one, matrix === paired) — hide it otherwise.
-      const multi = axes.length >= 2;
-      const modeWrap = document.getElementById('planLoopModeWrap');
-      if (modeWrap) modeWrap.style.display = multi ? '' : 'none';
-      // Paired (zip by index) only makes sense when every selected list has the same length.
-      const sameLen = axes.length > 0 && axes.every(a => a.count === axes[0].count);
-      const sel = document.getElementById('planLoopMode');
-      const pairedOpt = document.getElementById('planLoopModePaired');
-      if (pairedOpt) {
-        pairedOpt.disabled = !sameLen;
-        pairedOpt.title = sameLen ? '' : 'Available only when all selected lists have the same length';
+      const el = document.getElementById('planLoopCount');
+      if (!el) return;
+      el.classList.remove('err');
+      if (!axes.length) {
+        el.textContent = planAxes().length ? 'Select at least one list variable to loop over.' : '';
+        return;
       }
-      if (!sameLen && sel && sel.value === 'paired') sel.value = 'matrix';   // fall back
-      const paired = multi && sameLen && loopCombineMode() === 'paired';
-      // Matrix → product of axis sizes; Paired → one run per index (longest list).
-      const total = !axes.length ? 0 : paired ? Math.max.apply(null, counts) : counts.reduce((a, b) => a * b, 1);
-      const detail = !multi
-        ? axes.map(a => a.name + ' ' + a.count).join('')
-        : paired ? 'paired by index' : axes.map(a => a.name + ' ' + a.count).join(' × ');
-      document.getElementById('planLoopCount').textContent = axes.length
-        ? total + ' run' + (total !== 1 ? 's' : '') + '  (' + detail + ')'
-        : (planAxes().length ? 'Select at least one list variable to loop over.' : '');
+      const groups = planLoopGroupList();
+      const bad = badPairGroup(groups);
+      if (bad) {
+        el.classList.add('err');
+        el.textContent = '⚠ Paired lists must be the same length: ' +
+          bad.map(a => a.name + ' (' + a.count + ')').join(', ');
+        return;
+      }
+      // Runs = product of group sizes; a paired group counts once (its shared length).
+      const total = groups.reduce((acc, g) => acc * g[0].count, 1);
+      const detail = groups.map(g => g.length > 1
+        ? '(' + g.map(a => a.name).join(' + ') + ') ' + g[0].count
+        : g[0].name + ' ' + g[0].count).join(' × ');
+      el.textContent = total + ' run' + (total !== 1 ? 's' : '') + '  (' + detail + ')';
     }
 
     function runPlanFromBuilder() {
       const cases = selectedCases();
       if (!cases.length) { appAlert('No test cases', 'Select at least one test case.'); return; }
       if (document.getElementById('planLoop').checked) {
+        if (candidateLockablePools(cases).length) {
+          appAlert('Loop + lockable not supported', 'This plan leases from a lockable pool, which can’t be combined with looping. Turn off loop, or use a non-lockable dataset for the loop.');
+          return;
+        }
         if (cases.length !== 1) { appAlert('One test case', 'Looping currently supports exactly one test case. Select a single case, then loop.'); return; }
         startPlanLoop(cases); return;
+      }
+      const lockDs = resolvePlanPool(cases, planPoolChoice);   // lease mode: leased at run, user-chosen pool
+      if (lockDs) {
+        const nm = (document.getElementById('planNameInput').value || '').trim() || 'Plan';
+        runPlanLeased({ name: nm, pool: lockDs.name }, cases, lockDs, {}); return;
       }
       const { need } = planVariables();
       if (need.length) openResolveModal(need, ov => runPlanExecute(cases, ov));
@@ -3326,17 +3768,15 @@
     function startPlanLoop(cases) {
       const axes = planAxes().filter(a => planLoopRoots.has(a.name));
       if (!axes.length) { appAlert('No variables to loop', 'Select at least one variable to loop over.'); return; }
-      const lists = axes.map(a => {
-        if (a.kind === 'record') {
-          const ds = loadDatasets().find(d => d.name === a.name);
-          return datasetRichRecords(ds).map(rec => ({ kind: 'record', name: a.name, record: rec, label: comboKey(rec) }));
-        }
-        return a.values.map(v => ({ kind: 'value', name: a.name, value: v, label: displayVal(v) }));
-      });
-      // Paired (zip by index) vs Matrix (cartesian product). Everything downstream is generic over combos.
-      // Paired requires all selected lists to be the same length; otherwise fall back to Matrix.
-      const sameLen = axes.every(a => a.count === axes[0].count);
-      const combos = (loopCombineMode() === 'paired' && sameLen) ? zip(lists) : cartesian(lists);
+      const groups = planLoopGroupList();
+      const bad = badPairGroup(groups);
+      if (bad) {
+        appAlert('Unequal paired lists', 'Paired variables must have the same number of items: ' +
+          bad.map(a => a.name + ' (' + a.count + ')').join(', ') + '. Put them on different groups or fix the lists.');
+        return;
+      }
+      // Within a pair group → zip by index; across groups → cartesian. Downstream is generic over combos.
+      const combos = buildLoopCombos(groups);
       const axisNames = new Set(axes.map(a => a.name));
       const tied = [];
       axes.forEach(a => { const dn = a.kind === 'record' ? a.name : a.dsName; if (dn && tied.indexOf(dn) < 0) tied.push(dn); });
@@ -3450,7 +3890,7 @@
         id,
         name: (name || '').trim() || 'Untitled Plan',
         tied: loopCtx.tied || [],          // dataset names this plan depends on
-        mode: loopCombineMode(),           // 'matrix' | 'paired' (informational; attempts are baked)
+        mode: loopModeLabel(),             // 'matrix' | 'paired' | 'mixed' (informational; attempts are baked)
         attempts: loopCtx.attempts,        // each { caseId, caseName, vars, display }
         createdAt: Date.now()
       };
@@ -3539,10 +3979,14 @@
         resolveItems = [];
       }
       const { values, tied } = collectPlanResolution();
+      // Persist the chosen lockable pool (if these cases lease from one) and tie it too.
+      const poolDs = resolvePlanPool(selectedCases(), planPoolChoice);
+      if (poolDs && tied.indexOf(poolDs.name) < 0) tied.push(poolDs.name);
       // Snapshot each tied dataset's version, so we can flag "updated" later.
       const tiedStamps = {};
       loadDatasets().forEach(d => { if (tied.indexOf(d.name) >= 0) tiedStamps[d.name] = d.updatedAt; });
-      const plan = { id: planBuilder.id, name, caseIds: Array.from(planSelected), values, tied, tiedStamps, createdAt: Date.now() };
+      const plan = { id: planBuilder.id, name, caseIds: Array.from(planSelected), values, tied, tiedStamps,
+                     pool: poolDs ? poolDs.name : undefined, createdAt: Date.now() };
       const plans = loadPlans();
       const idx = plans.findIndex(x => x.id === plan.id);
       if (idx >= 0) plans[idx] = plan; else plans.push(plan);
@@ -3579,7 +4023,87 @@
       }
       const cases = loadStore().filter(c => (p.caseIds || []).indexOf(c.id) >= 0);
       if (!cases.length) { appAlert('No test cases', 'The test cases in this plan no longer exist.'); return; }
+      if (p.pool) {
+        // The plan was saved to lease from a specific pool — fail loudly if it's gone, never
+        // silently fall back to a different pool.
+        const exact = lockableDatasets().find(d => d.name === p.pool);
+        if (!exact) {
+          appAlert('Pool no longer exists', 'This plan leases from “' + p.pool +
+            '”, which was deleted, renamed, or is no longer lockable. Open the plan and choose a pool.');
+          return;
+        }
+        runPlanLeased(p, cases, exact, p.values || {}); return;
+      }
+      const lockDs = resolvePlanPool(cases, null);   // legacy/no saved pool → infer a candidate
+      if (lockDs) { runPlanLeased(p, cases, lockDs, p.values || {}); return; }
       runPlanExecute(cases, p.values || {});
+    }
+
+    // Lease-mode plan run: every case runs concurrently, each leasing one row from the shared
+    // pool; cases wait when the pool is exhausted and release their row when done.
+    // Lockable variables referenced by these cases that the chosen pool does NOT provide —
+    // i.e. the cases span more than one pool, which we don't lease across.
+    function uncoveredPoolVars(cases, ds) {
+      const cols = lockableCols(ds), refs = new Set();
+      cases.forEach(c => refsInContent(c.content).forEach(r => { if (isLockableVar(r) && !cols.includes(r)) refs.add(r); }));
+      return Array.from(refs);
+    }
+    async function runPlanLeased(plan, cases, ds, overrides) {
+      // Guard: a case can only lease from ONE pool. Variables from another pool would go unresolved.
+      const uncovered = uncoveredPoolVars(cases, ds);
+      if (uncovered.length) {
+        appAlert('Variables span multiple pools',
+          'These cases also use lockable variables not in “' + ds.name + '”: ' + uncovered.join(', ') +
+          '. A plan can lease from only one pool — split the cases or move the variables into one pool.');
+        return;
+      }
+      switchView('editor');
+      if (activeRuns === 0) logsBody.innerHTML = '';
+      runStarted();
+      try {
+        const tag = (plan && plan.name) || 'Plan';
+        appendLog('▶ <b>' + escapeHtml(tag) + '</b> · ' + cases.length + ' case' + (cases.length !== 1 ? 's' : '') +
+          ' · pool <b>' + escapeHtml(ds.name) + '</b> (' + poolSize(ds) + ' rows, ' +
+          Math.max(0, poolSize(ds) - leasedCount(ds.name)) + ' free)', 'info');
+        const cols = lockableCols(ds);
+        const results = await Promise.allSettled(cases.map(c => runLeasedCase(tag, c, ds, cols, overrides)));
+        const passed = results.filter(r => r.status === 'fulfilled' && r.value).length;
+        appendLog('■ <b>' + escapeHtml(tag) + '</b> finished · ' + passed + '/' + cases.length + ' passed', 'success');
+      } finally {
+        runEnded();   // never leave the active-run counter stuck, even on an unexpected throw
+      }
+    }
+    async function runLeasedCase(planTag, c, ds, cols, overrides) {
+      const who = planTag + '·' + c.name;
+      const pfx = '<span class="log-tag">' + escapeHtml(who) + '</span> ';
+      let lease = null;
+      try {
+        lease = await acquireLease(ds.name, ds, who, {
+          timeoutMs: 90000,
+          onWait: () => appendLog(pfx + '⏳ waiting for a free value in “' + escapeHtml(ds.name) + '”…', 'muted')
+        });
+        appendLog(pfx + '🔒 leased <b>#' + lease.index + '</b> · ' +
+          cols.map(k => escapeHtml(k) + '=' + escapeHtml(displayVal(lease.row[k]))).join(', '), 'info');
+        const env = { vars: {}, datasets: loadDatasets(), rowMap: {} };
+        if (overrides) Object.assign(env.vars, overrides);
+        cols.forEach(k => { env.vars[k] = lease.row[k]; });                 // leased row binds pool vars
+        parseSetMap(c.content).forEach(v => { env.vars[v.name] = setValueOf(v); });  // case's own SET wins
+        const steps = c.content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        for (let s = 0; s < steps.length; s++) {
+          await sleep(700);
+          const resolved = resolveTokens(steps[s], env);
+          const cmd = resolved.split(/\s+/)[0], rest = resolved.slice(cmd.length);
+          appendLog(pfx + '<span class="log-idx">' + (s + 1) + '</span><span class="log-cmd">' +
+            escapeHtml(cmd) + '</span>' + escapeHtml(rest) + '<span class="log-pass">✓</span>', 'step');
+        }
+        appendLog(pfx + '✓ done', 'success');
+        return true;
+      } catch (e) {
+        appendLog(pfx + '✗ ' + escapeHtml(e.message || String(e)), 'error');
+        return false;
+      } finally {
+        if (lease) { releaseLease(ds.name, lease.leaseId); appendLog(pfx + '🔓 released #' + lease.index, 'muted'); }
+      }
     }
     // Compact relative time, e.g. "just now", "5 min ago", "3 days ago".
     function relTime(ts) {
@@ -3628,11 +4152,12 @@
         const chips = [];
         if (p.attempts) {
           chips.push('<span class="plan-chip runs">' + p.attempts.length + ' run' + (p.attempts.length !== 1 ? 's' : '') + '</span>');
-          chips.push('<span class="plan-chip loop">' + (p.mode === 'paired' ? 'paired' : 'matrix') + '</span>');
+          chips.push('<span class="plan-chip loop">' + escapeHtml(p.mode || 'matrix') + '</span>');
         } else {
           chips.push('<span class="plan-chip runs">' + caseN + ' case' + (caseN !== 1 ? 's' : '') + '</span>');
         }
-        (p.tied || []).forEach(n => chips.push('<span class="plan-chip ds">' + escapeHtml(n) + '</span>'));
+        if (p.pool) chips.push('<span class="plan-chip pool">' + svgIcon('lock') + escapeHtml(p.pool) + '</span>');
+        (p.tied || []).filter(n => n !== p.pool).forEach(n => chips.push('<span class="plan-chip ds">' + escapeHtml(n) + '</span>'));
         card.querySelector('.plan-card-chips').innerHTML = chips.join('');
         card.querySelector('.ds-card-meta').textContent = 'Created ' + relTime(p.createdAt);
         // Status is shown via the dot/pill hover only — the plan always runs on its saved snapshot.
@@ -4685,7 +5210,7 @@
     });
 
     /* ---------- Views ---------- */
-    const VIEW_IDS = { editor: 'editorView', projects: 'projectsView', testdata: 'testDataView', plans: 'plansView' };
+    const VIEW_IDS = { editor: 'editorView', projects: 'projectsView', testdata: 'testDataView', plans: 'plansView', locks: 'locksView' };
     function switchView(name) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById(VIEW_IDS[name] || 'editorView').classList.add('active');
@@ -4693,9 +5218,11 @@
       document.getElementById('navProjects').classList.toggle('active', name === 'projects');
       document.getElementById('navTestData').classList.toggle('active', name === 'testdata');
       document.getElementById('navPlans').classList.toggle('active', name === 'plans');
+      document.getElementById('navLocks').classList.toggle('active', name === 'locks');
       if (name === 'projects') renderProjects();
       if (name === 'testdata') { rebuildVariables(); renderVariables(); renderDataFiles(); renderDatasets(); }
       if (name === 'plans') { showPlanPane('list'); renderSavedPlans(); }
+      if (name === 'locks') renderLocks();
       if (name === 'editor') input.focus();
     }
 
@@ -4882,13 +5409,26 @@
       navigator.clipboard && navigator.clipboard.writeText(logsBody.innerText);
     }
 
+    // Concurrent lease-mode runs (plans sharing a lockable pool) are tracked separately from the
+    // single editor/legacy run so they can overlap. reflectRunning() shows the combined status.
+    let activeRuns = 0;
+    function reflectRunning() {
+      const on = isRunning || activeRuns > 0;
+      recDot.classList.toggle('running', on);
+      runBtn.disabled = on;   // also disabled while lease-mode plan runs are active
+      statusText.textContent = activeRuns > 0
+        ? 'Running… (' + activeRuns + ' active)'
+        : (isRunning ? 'Running test…' : 'Idle');
+    }
     function setRunning(on) {
+      isRunning = on;
       runBtn.disabled = on;
       runLabel.textContent = on ? 'Running…' : 'Run Test';
       runIcon.innerHTML = svgIcon(on ? 'square' : 'play', on ? '' : 'fill');
-      recDot.classList.toggle('running', on);
-      statusText.textContent = on ? 'Running test…' : 'Idle';
+      reflectRunning();
     }
+    function runStarted() { activeRuns++; reflectRunning(); }
+    function runEnded() { activeRuns = Math.max(0, activeRuns - 1); reflectRunning(); }
 
     /* ----- Data-file helpers ----- */
 
@@ -5309,6 +5849,7 @@
 
     async function runTest(dataFileId, index, overrides) {
       if (isRunning) return;
+      if (activeRuns > 0) { appAlert('Run in progress', 'A plan is currently running (leasing pool rows). Wait for it to finish before running a single test.'); return; }
       const steps = input.value.split('\n')
         .map(l => l.trim())
         .filter(l => l && !l.startsWith('#'));
