@@ -3529,21 +3529,28 @@
       if (attr.indexOf('.') >= 0) return [];
       return lockableDatasets().filter(ds => lockableCols(ds).includes(attr));
     }
+    // The lease selection the resolver is editing: the single-test modal uses its own scratch set;
+    // the plan builder uses the persisted plan set.
+    let modalPools = null;
+    function curPools() { return modalPools || planPools; }
     // The selected pool currently leasing this variable (or null).
     function leasingPoolFor(attr) {
-      return poolsForAttr(attr).find(ds => planPools.has(ds.name)) || null;
+      const pool = curPools();
+      return poolsForAttr(attr).find(ds => pool.has(ds.name)) || null;
     }
     // Lock a variable to a pool: select that pool (one pool per variable), drop any other pool
     // that also provides it, and clear fixed values for every column the pool now leases (paired).
     function lockVar(attr, poolName) {
-      poolsForAttr(attr).forEach(ds => planPools.delete(ds.name));   // one source per variable
-      planPools.add(poolName);
-      const pool = lockableDatasets().find(d => d.name === poolName);
-      if (pool) resolveItems.forEach(it => { if (it.type === 'value' && lockableCols(pool).includes(it.attr)) it.chosen = undefined; });
+      const pool = curPools();
+      poolsForAttr(attr).forEach(ds => pool.delete(ds.name));   // one source per variable
+      pool.add(poolName);
+      const ds = lockableDatasets().find(d => d.name === poolName);
+      if (ds) resolveItems.forEach(it => { if (it.type === 'value' && lockableCols(ds).includes(it.attr)) it.chosen = undefined; });
       onLeaseChange();
     }
     function unlockVar(attr) {
-      poolsForAttr(attr).forEach(ds => planPools.delete(ds.name));
+      const pool = curPools();
+      poolsForAttr(attr).forEach(ds => pool.delete(ds.name));
       onLeaseChange();
     }
     // Re-render the resolver (and, in the plan builder, the loop/footer too).
@@ -3696,7 +3703,7 @@
       }
       split.style.display = 'flex'; empty.style.display = 'none';
       resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
-      resolveLeasing = true;   // plan builder: variables can be locked to pools
+      resolveLeasing = true; modalPools = null;   // plan builder: variables can be locked to pools (uses planPools)
       resolveItems = buildResolveItems(refs, planSeed);
       onResolveChange = () => { planSeed = mergeSeed(); };   // remember picks across tab switches / save
       const firstUnresolved = resolveItems.findIndex(it => itemStatus(it) !== 'ok');
@@ -3909,7 +3916,7 @@
       // Resolve everything inline (values + pool locks) via the builder's variable-first resolver.
       const refs = planResolveRefs();
       resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
-      resolveLeasing = true;
+      resolveLeasing = true; modalPools = null;
       resolveItems = refs.length ? buildResolveItems(refs, planSeed) : [];
       if (unresolvedCount() > 0) {
         planTab('data');
@@ -4161,7 +4168,7 @@
       // locked to a pool before saving.
       const refs = planResolveRefs();
       resolveEls = { list: 'planResolveList', detail: 'planResolveDetail', foot: null, run: null };
-      resolveLeasing = true;
+      resolveLeasing = true; modalPools = null;
       resolveItems = refs.length ? buildResolveItems(refs, planSeed) : [];
       if (unresolvedCount() > 0) {
         planTab('data');
@@ -4531,7 +4538,7 @@
         const item = { type: 'value', attr, distinct, pools, chosen: undefined };
         if (seed && seed.values && seed.values[attr] !== undefined) item.chosen = seed.values[attr];
         else if (!(resolveLeasing && leasingPoolFor(attr))) {
-          if (resolveLeasing && !distinct.length && pools.length === 1) planPools.add(pools[0].name);  // pool-only → auto-lock
+          if (resolveLeasing && !distinct.length && pools.length === 1) curPools().add(pools[0].name);  // pool-only → auto-lock
           else if (distinct.length === 1 && !pools.length) item.chosen = distinct[0].value;
         }
         items.push(item);
@@ -4549,15 +4556,18 @@
     // Choose a fixed value for a variable — this also unlocks any pool that was leasing it.
     function pickFixed(it, v) {
       it.chosen = v;
-      if (resolveLeasing) poolsForAttr(it.attr).forEach(ds => planPools.delete(ds.name));
+      if (resolveLeasing) poolsForAttr(it.attr).forEach(ds => curPools().delete(ds.name));
       onLeaseChange();
     }
 
-    function openResolveModal(unresolved, onRun) {
-      resolveOnRun = onRun || (ov => runTest(null, null, ov));
+    function openResolveModal(unresolved, onRun, opts) {
+      opts = opts || {};
+      resolveOnRun = onRun || ((ov, pl) => runTest(null, null, ov, pl));
       resolveEls = { list: 'resolveList', detail: 'resolveDetail', foot: 'resolveFootStatus', run: 'resolveRunBtn' };
       onResolveChange = null;
-      resolveLeasing = false;   // single-test resolve: no pool leasing
+      // Single-test runs CAN lock to pools (opts.leasing); the modal keeps its own scratch selection.
+      resolveLeasing = !!opts.leasing;
+      modalPools = opts.leasing ? new Set() : null;
       resolveItems = buildResolveItems(unresolved);
       // Open focused on the first unresolved variable (conflict/manual), else the first.
       const firstUnresolved = resolveItems.findIndex(it => itemStatus(it) !== 'ok');
@@ -4565,7 +4575,7 @@
       renderResolve();
       document.getElementById('resolveModal').classList.add('open');
     }
-    function closeResolveModal() { document.getElementById('resolveModal').classList.remove('open'); }
+    function closeResolveModal() { document.getElementById('resolveModal').classList.remove('open'); modalPools = null; }
 
     // Status for an item: 'ok' (resolved, no conflict), 'conflict' (multiple, unpicked),
     //                     'manual' (no candidates, needs typed value).
@@ -4844,13 +4854,15 @@
           if (it.chosen == null) unresolved.push(it.root);
           else overrides[it.root] = it.records[it.chosen];
         } else {
+          if (resolveLeasing && leasingPoolFor(it.attr)) return;   // locked to a pool — leased at run
           if (it.chosen === undefined) unresolved.push(it.attr);
           else overrides[it.attr] = it.chosen;
         }
       });
-      if (unresolved.length) { appAlert('Unresolved variables', 'Resolve every variable first: ' + unresolved.join(', ')); return; }
+      if (unresolved.length) { appAlert('Unresolved variables', 'Lock or set a value for every variable first: ' + unresolved.join(', ')); return; }
+      const pools = resolveLeasing ? Array.from(curPools()) : [];
       closeResolveModal();
-      (resolveOnRun || (ov => runTest(null, null, ov)))(overrides);
+      (resolveOnRun || ((ov, pl) => runTest(null, null, ov, pl)))(overrides, pools);
     }
 
     function ensureYamlName(name) {
@@ -6165,9 +6177,108 @@
       return Array.from(set);
     }
 
-    async function runTest(dataFileId, index, overrides) {
+    // Run the editor's steps against env, tracking live SET values. Logs each step.
+    // Returns true on success, false if a malformed SET aborts the run. `pfx` prefixes log lines
+    // (used to tag concurrent leased runs).
+    async function execEditorSteps(steps, env, pfx) {
+      pfx = pfx || '';
+      const liveVars = {};
+      for (let i = 0; i < steps.length; i++) {
+        await sleep(1000);   // each step takes ~1 second
+        const setM = steps[i].match(SET_RE);
+        if (setM) {
+          const name = setM[1];
+          const info = { name, ...inferType(setM[2]) };
+          if (info.invalid) {   // malformed object/array literal → fail the run
+            appendLog(pfx +
+              '<span class="log-idx">' + (i + 1) + '</span>' +
+              '<span class="log-cmd">SET</span> ' + escapeHtml(name) + ' = ' + escapeHtml(setM[2]) +
+              '<span class="log-fail">✗</span>', 'step');
+            appendLog(pfx + 'Run failed · ' + name + ' is not valid ' + info.type + ' (malformed JSON)', 'error');
+            return false;
+          }
+          const newV = setValueOf(info);
+          const had = Object.prototype.hasOwnProperty.call(liveVars, name);
+          const oldV = liveVars[name];
+          liveVars[name] = newV;
+          const body = had
+            ? escapeHtml(name) + ' <span class="log-old">' + escapeHtml(displayVal(oldV)) + '</span>' +
+              '<span class="log-arrow"> → </span><b class="log-new">' + escapeHtml(displayVal(newV)) + '</b>'
+            : escapeHtml(name) + ' <span class="log-arrow">= </span><b class="log-new">' + escapeHtml(displayVal(newV)) + '</b>';
+          appendLog(pfx +
+            '<span class="log-idx">' + (i + 1) + '</span>' +
+            '<span class="log-cmd">SET</span> ' + body + '<span class="log-pass">✓</span>', 'step');
+          continue;
+        }
+        const stepEnv = { vars: Object.assign({}, env.vars, liveVars), datasets: env.datasets, rowMap: env.rowMap };
+        const resolved = resolveTokens(steps[i], stepEnv);
+        const cmd = resolved.split(/\s+/)[0];
+        const rest = resolved.slice(cmd.length);
+        appendLog(pfx +
+          '<span class="log-idx">' + (i + 1) + '</span>' +
+          '<span class="log-cmd">' + escapeHtml(cmd) + '</span>' + escapeHtml(rest) +
+          '<span class="log-pass">✓</span>', 'step');
+      }
+      return true;
+    }
+
+    function editorTestName() {
+      const t = (document.getElementById('tabName') || {}).textContent;
+      return (t && t.trim()) || 'Editor test';
+    }
+
+    // Single-test run that leases rows from lockable pools (chosen in the resolve window).
+    // Shares the global pool with plans, shows in Locks, and is recorded in Run History.
+    async function runEditorLeased(steps, env, poolNames, overrides) {
+      const who = editorTestName();
+      const pfx = '<span class="log-tag">' + escapeHtml(who) + '</span> ';
+      const refs = casePlainRefs([{ content: input.value }]);
+      const need = poolNames.map(n => lockableDatasets().find(d => d.name === n))
+        .filter(d => d && lockableCols(d).some(c => refs.has(c)));
+      switchView('editor');
+      if (activeRuns === 0) logsBody.innerHTML = '';
+      runStarted();
+      const startedAt = Date.now(), events = [];
+      let leases = [], status = 'pass', detail = '';
+      try {
+        appendLog('▶ <b>' + escapeHtml(who) + '</b> · single test · pool' + (need.length !== 1 ? 's' : '') + ' ' +
+          need.map(d => '<b>' + escapeHtml(d.name) + '</b> (' + poolSize(d) + ')').join(', '), 'info');
+        if (need.length) {
+          leases = await acquireAll(need, who, {
+            timeoutMs: 90000,
+            onWait: () => { events.push({ type: 'wait', at: Date.now(), pools: need.map(d => d.name) });
+              appendLog(pfx + '⏳ waiting for free values in ' + need.map(d => '“' + escapeHtml(d.name) + '”').join(', ') + '…', 'muted'); }
+          });
+          leases.forEach(({ ds, lease }) => {
+            const vals = lockableCols(ds).map(k => k + '=' + displayVal(lease.row[k])).join(', ');
+            events.push({ type: 'lock', at: Date.now(), pool: ds.name, index: lease.index, values: vals });
+            appendLog(pfx + '🔒 ' + escapeHtml(ds.name) + ' #' + lease.index + ' · ' + escapeHtml(vals), 'info');
+          });
+        }
+        if (overrides) Object.assign(env.vars, overrides);
+        leases.forEach(({ ds, lease }) => lockableCols(ds).forEach(k => { env.vars[k] = lease.row[k]; }));
+        const used = referencedRefs();
+        if (used.length) appendLog(pfx + '<span class="log-data">Data · ' + used.map(r =>
+          '<b>' + escapeHtml(r) + '</b>=' + escapeHtml(displayVal(resolveRef(r, env)))).join('   ') + '</span>', '');
+        const ok = await execEditorSteps(steps, env, pfx);
+        status = ok ? 'pass' : 'fail';
+        appendLog(pfx + (ok ? '■ finished' : '■ failed'), ok ? 'success' : 'error');
+        detail = leases.map(({ ds, lease }) => lockableCols(ds).map(k => k + '=' + displayVal(lease.row[k])).join(', ')).join(' · ');
+      } catch (e) {
+        status = 'fail'; detail = e.message || String(e);
+        appendLog(pfx + '✗ ' + escapeHtml(detail), 'error');
+      } finally {
+        leases.forEach(({ ds, lease }) => { events.push({ type: 'release', at: Date.now(), pool: ds.name, index: lease.index });
+          releaseLease(ds.name, lease.leaseId); appendLog(pfx + '🔓 released ' + escapeHtml(ds.name) + ' #' + lease.index, 'muted'); });
+        recordRun({ plan: who, kind: 'lease', startedAt, items: [{ label: who, status, detail, events }], pools: need.map(d => d.name) });
+        runEnded();
+      }
+    }
+
+    async function runTest(dataFileId, index, overrides, pools) {
+      const leasing = !!(pools && pools.length);
       if (isRunning) return;
-      if (activeRuns > 0) { appAlert('Run in progress', 'A plan is currently running (leasing pool rows). Wait for it to finish before running a single test.'); return; }
+      if (!leasing && activeRuns > 0) { appAlert('Run in progress', 'A plan is currently running (leasing pool rows). Wait for it to finish before running a single test.'); return; }
       const steps = input.value.split('\n')
         .map(l => l.trim())
         .filter(l => l && !l.startsWith('#'));
@@ -6183,11 +6294,7 @@
       let sourceLabel = 'default values';
 
       if (window.APP_VERSION === 3) {
-        // Resolve ONLY from this editor's own SET lines (not aggregated from other files),
-        // so every variable in this test is validated independently.
         parseSetMap(input.value).forEach(v => { env.vars[v.name] = setValueOf(v); });
-        // The editor is NOT auto-connected to datasets. Values come only from SET (above)
-        // or from the Resolve window (overrides). Datasets are reached explicitly there.
       } else {
         const names = referencedVarNames();
         const file = dataFileId ? loadData().find(x => x.id === dataFileId) : null;
@@ -6200,11 +6307,17 @@
       // Manually-entered values (from the Resolve window) win over everything.
       if (overrides) { Object.assign(env.vars, overrides); sourceLabel = 'entered values'; }
 
-      // V3 default run: if any referenced ref/path is still unresolved, ask the user.
-      if (window.APP_VERSION === 3 && dataFileId == null && !overrides) {
-        const unresolved = referencedRefs().filter(a => !isResolved(resolveRef(a, env)));
-        if (unresolved.length) { openResolveModal(unresolved, ov => runTest(null, null, ov)); return; }
+      // V3 default run (no prior resolve): open the resolver if any referenced, non-SET variable is
+      // unresolved OR can be locked to a lockable pool — so the user can pick a value or lock it.
+      if (window.APP_VERSION === 3 && dataFileId == null && !overrides && !leasing) {
+        const setMap = parseSetMap(input.value);
+        const list = referencedRefs().filter(r => !setMap.has(r) &&
+          (!isResolved(resolveRef(r, env)) || poolsForAttr(r).length));
+        if (list.length) { openResolveModal(list, (ov, pl) => runTest(null, null, ov, pl), { leasing: true }); return; }
       }
+
+      // Leased single test: acquire pool rows, run, release (shares the global pool, shows in Locks/History).
+      if (leasing) { await runEditorLeased(steps, env, pools, overrides); return; }
 
       logsBody.innerHTML = '';
       isRunning = true;
@@ -6212,7 +6325,6 @@
       appendLog('Run started · ' + steps.length + ' step' + (steps.length > 1 ? 's' : '') +
         ' · ' + escapeHtml(sourceLabel), 'info');
 
-      // Show only the references the steps actually use — the relevant data.
       const used = referencedRefs();
       if (used.length) {
         const data = used.map(r =>
@@ -6220,51 +6332,8 @@
         appendLog('<span class="log-data">Data · ' + data + '</span>', '');
       }
 
-      // Track variable values as the script runs, so SET lines log allocation / change.
-      const liveVars = {};
-      for (let i = 0; i < steps.length; i++) {
-        await sleep(1000);   // each step takes ~1 second
-        const setM = steps[i].match(SET_RE);
-        if (setM) {
-          const name = setM[1];
-          const info = { name, ...inferType(setM[2]) };
-          if (info.invalid) {   // malformed object/array literal → fail the run
-            appendLog(
-              '<span class="log-idx">' + (i + 1) + '</span>' +
-              '<span class="log-cmd">SET</span> ' + escapeHtml(name) + ' = ' + escapeHtml(setM[2]) +
-              '<span class="log-fail">✗</span>', 'step');
-            appendLog('Run failed · ' + name + ' is not valid ' + info.type + ' (malformed JSON)', 'error');
-            setRunning(false); isRunning = false;
-            return;
-          }
-          const newV = setValueOf(info);
-          const had = Object.prototype.hasOwnProperty.call(liveVars, name);
-          const oldV = liveVars[name];
-          liveVars[name] = newV;
-          const body = had
-            ? escapeHtml(name) + ' <span class="log-old">' + escapeHtml(displayVal(oldV)) + '</span>' +
-              '<span class="log-arrow"> → </span><b class="log-new">' + escapeHtml(displayVal(newV)) + '</b>'
-            : escapeHtml(name) + ' <span class="log-arrow">= </span><b class="log-new">' + escapeHtml(displayVal(newV)) + '</b>';
-          appendLog(
-            '<span class="log-idx">' + (i + 1) + '</span>' +
-            '<span class="log-cmd">SET</span> ' + body +
-            '<span class="log-pass">✓</span>',
-            'step'
-          );
-          continue;
-        }
-        // Resolve with the values as they stand RIGHT NOW (live SET values overlaid).
-        const stepEnv = { vars: Object.assign({}, env.vars, liveVars), datasets: env.datasets, rowMap: env.rowMap };
-        const resolved = resolveTokens(steps[i], stepEnv);
-        const cmd = resolved.split(/\s+/)[0];
-        const rest = resolved.slice(cmd.length);
-        appendLog(
-          '<span class="log-idx">' + (i + 1) + '</span>' +
-          '<span class="log-cmd">' + escapeHtml(cmd) + '</span>' + escapeHtml(rest) +
-          '<span class="log-pass">✓</span>',
-          'step'
-        );
-      }
+      const ok = await execEditorSteps(steps, env);
+      if (!ok) { setRunning(false); isRunning = false; return; }
 
       await sleep(400);
       appendLog('Run finished · ' + steps.length + '/' + steps.length + ' passed', 'success');
